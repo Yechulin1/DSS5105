@@ -1,0 +1,10 @@
+# OpenAI API Configuration (Optional)
+# Get your API key from: https://platform.openai.com/api-keys
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Application Settings
+APP_PORT=8501
+APP_ENV=development
+
+# Debug Mode
+DEBUG=False
