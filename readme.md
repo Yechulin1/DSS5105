@@ -136,15 +136,6 @@ python rag_engine.py  # Runs built-in tests
 3. Maintenance: "Who fixes the aircon?"
 4. Termination: "How to end lease early?"
 
-## 🤝 Team Contribution
-
-| Team Member | Role | Contribution |
-|------------|------|--------------|
-| Member 1 | Lead Developer | RAG system, core logic |
-| Member 2 | UI/UX | Streamlit interface |
-| Member 3 | Data Engineer | Document processing |
-| Member 4 | Testing/Docs | Quality assurance |
-
 ## 📈 Future Improvements
 
 1. **Multi-language Support**: Chinese, Malay, Tamil

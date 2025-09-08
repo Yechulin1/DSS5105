@@ -5,14 +5,28 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import re
 
-# For OpenAI integration (optional, can use local models too)
+# Try to import config
+try:
+    from config import OPENAI_API_KEY, OPENAI_MODEL, TEMPERATURE, MAX_TOKENS
+    CONFIG_LOADED = True
+    print(f"✅ Config loaded successfully")
+except ImportError as e:
+    CONFIG_LOADED = False
+    OPENAI_API_KEY = None
+    OPENAI_MODEL = "gpt-3.5-turbo"
+    TEMPERATURE = 0.3
+    MAX_TOKENS = 300
+    print(f"⚠️ Config not loaded: {e}")
+
+# For OpenAI integration
 try:
     import openai
     from openai import OpenAI
     OPENAI_AVAILABLE = True
+    print(f"✅ OpenAI library available")
 except ImportError:
     OPENAI_AVAILABLE = False
-    print("OpenAI not installed. Using simple response generation.")
+    print("❌ OpenAI not installed. Using simple response generation.")
 
 class RAGSystem:
     """
@@ -25,9 +39,41 @@ class RAGSystem:
         self.vectorizer = TfidfVectorizer(max_features=500, stop_words='english')
         self.chunk_embeddings = None
         self.client = None
+        self.api_connected = False
         
-        if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
-            self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        # Try to initialize OpenAI client from config.py
+        if OPENAI_AVAILABLE and CONFIG_LOADED and OPENAI_API_KEY and OPENAI_API_KEY != "your-api-key-here":
+            try:
+                print(f"🔄 Attempting to connect to OpenAI...")
+                print(f"   API Key ends with: ...{OPENAI_API_KEY[-4:]}")
+                print(f"   Model: {OPENAI_MODEL}")
+                
+                self.client = OpenAI(api_key=OPENAI_API_KEY)
+                # Test the connection
+                test_response = self.client.chat.completions.create(
+                    model="gpt-3.5-turbo",  # Use gpt-3.5-turbo for testing
+                    messages=[{"role": "user", "content": "test"}],
+                    max_tokens=5
+                )
+                self.api_connected = True
+                print(f"✅ Successfully connected to OpenAI")
+            except Exception as e:
+                print(f"❌ Failed to connect to OpenAI: {e}")
+                self.client = None
+                self.api_connected = False
+        else:
+            print("⚠️ OpenAI not configured:")
+            print(f"   - OpenAI Available: {OPENAI_AVAILABLE}")
+            print(f"   - Config Loaded: {CONFIG_LOADED}")
+            print(f"   - API Key Set: {bool(OPENAI_API_KEY and OPENAI_API_KEY != 'your-api-key-here')}")
+            
+            if not CONFIG_LOADED:
+                print("   → config.py not found. Using basic mode.")
+            elif not OPENAI_API_KEY or OPENAI_API_KEY == "your-api-key-here":
+                print("   → Please add your OpenAI API key to config.py")
+            elif not OPENAI_AVAILABLE:
+                print("   → OpenAI library not installed. Run: pip install openai")
+            print("📝 Using pattern matching mode for responses.")
     
     def load_document(self, filepath: str):
         """Load and process a document"""
@@ -185,7 +231,7 @@ class RAGSystem:
         sources = list(set([r['chunk']['source'] for r in search_results]))
         
         # Generate answer
-        if self.client and OPENAI_AVAILABLE:
+        if self.api_connected and self.client:
             answer = self._generate_answer_openai(question, context)
             # Add mode indicator
             answer = f"🤖 **AI Mode (GPT-3.5)**\n\n{answer}"

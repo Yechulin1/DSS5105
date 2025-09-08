@@ -50,9 +50,23 @@ def main():
         layout="wide"
     )
     
-    # Header
-    st.title("🏠 Real Estate AI Assistant")
-    st.markdown("### Your Smart Tenant Support Chatbot")
+    # Header with API status
+    col_title, col_status = st.columns([3, 1])
+    with col_title:
+        st.title("🏠 Real Estate AI Assistant")
+        st.markdown("### Your Smart Tenant Support Chatbot")
+    
+    with col_status:
+        # Check API connection status from RAG system
+        if st.session_state.rag_system and hasattr(st.session_state.rag_system, 'api_connected'):
+            if st.session_state.rag_system.api_connected:
+                st.success("✅ GPT Connected")
+                st.caption("AI Mode Active")
+            else:
+                st.warning("⚠️ Basic Mode")
+                st.caption("Pattern Matching")
+        else:
+            st.info("🔄 Initializing...")
     
     # Initialize RAG system
     initialize_rag_system()
@@ -132,14 +146,6 @@ def main():
         - OpenAI GPT-3.5
         """)
         
-        # API Key input
-        st.divider()
-        api_key = st.text_input("OpenAI API Key:", type="password", 
-                               help="Enter your OpenAI API key to enable AI responses")
-        
-        if api_key:
-            os.environ["OPENAI_API_KEY"] = api_key
-            
         # Sample questions
         st.divider()
         st.subheader("💡 Sample Questions")
@@ -178,27 +184,8 @@ def main():
                 st.write(prompt)
             
             # Generate response
-            if st.session_state.rag_system and api_key:
+            if st.session_state.rag_system:
                 with st.chat_message("assistant"):
-                    with st.spinner("Thinking..."):
-                        response, sources = st.session_state.rag_system.answer_question(prompt)
-                        st.write(response)
-                        
-                        # Show sources
-                        if sources:
-                            with st.expander("📚 Sources"):
-                                for source in sources:
-                                    st.text(f"• {source}")
-                        
-                        # Save assistant message
-                        st.session_state.messages.append({
-                            "role": "assistant", 
-                            "content": response,
-                            "sources": "\n".join(sources) if sources else ""
-                        })
-            elif not api_key:
-                with st.chat_message("assistant"):
-                    # Use simple response without API key
                     with st.spinner("Thinking..."):
                         response, sources = st.session_state.rag_system.answer_question(prompt)
                         st.write(response)
@@ -222,21 +209,14 @@ def main():
     with col2:
         st.subheader("📊 System Status")
         
-        # API Status Card
-        with st.container():
-            if api_key and 'api_status' in st.session_state:
-                if st.session_state.api_status == "connected":
-                    st.success("🟢 **AI Mode Active**")
-                    st.caption("Using GPT-3.5 for intelligent responses")
-                else:
-                    st.warning("🟡 **Basic Mode**")
-                    st.caption("Using pattern matching (API key invalid)")
-            elif api_key:
-                st.info("🔵 **API Key Entered**")
-                st.caption("Click 'Test' in sidebar to verify")
+        # Show connection status
+        if st.session_state.rag_system:
+            if st.session_state.rag_system.api_connected:
+                st.success("🟢 **AI Mode Active**")
+                st.caption("Using GPT for intelligent responses")
             else:
                 st.warning("🟡 **Basic Mode**")
-                st.caption("Add API key for better responses")
+                st.caption("Using pattern matching")
         
         st.divider()
         
