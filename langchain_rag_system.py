@@ -61,7 +61,7 @@ class AdvancedContractRAG:
         
         # 初始化OpenAI组件
         self.llm = ChatOpenAI(
-            temperature=0.3,
+            temperature=0.01,
             model=model,
             openai_api_key=api_key,
             max_tokens=500
@@ -73,7 +73,7 @@ class AdvancedContractRAG:
         
         # 文本分割器 - 智能分块
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=800,        # 块大小
+            chunk_size=2000,        # 块大小
             chunk_overlap=200,     # 重叠部分保持上下文
             length_function=len,
             separators=["\n\n", "\n", "。", ".", " ", ""]  # 支持中英文
@@ -506,10 +506,13 @@ class AdvancedContractRAG:
 
 # 使用示例
 if __name__ == "__main__":
-    from config import OPENAI_API_KEY
+    from config import OPENAI_API_KEY, OPENAI_MODEL
     
+    #api_key =os.getenv("OPENAI_API_KEY")
+    #model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+
     # 初始化系统
-    rag = AdvancedContractRAG(api_key=OPENAI_API_KEY)
+    rag = AdvancedContractRAG(api_key=OPENAI_API_KEY, model=OPENAI_MODEL)
     
     # 加载PDF
     result = rag.load_pdf("documents/contract.pdf")
