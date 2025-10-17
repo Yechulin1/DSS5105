@@ -33,6 +33,8 @@ from langchain.callbacks import get_openai_callback
 import numpy as np
 from pathlib import Path
 import json
+from dotenv import load_dotenv
+load_dotenv()
 
 class AdvancedContractRAG:
     """
@@ -114,6 +116,16 @@ class AdvancedContractRAG:
         pdf_path = Path(pdf_path)
         if not pdf_path.exists():
             return {"success": False, "error": f"File not found: {pdf_path}"}
+        
+        # 确保只有一个文档（新增）
+        if self.ensure_single_document(str(pdf_path)):
+            # 如果是同一个文件且已加载，直接返回
+            return {
+                "success": True, 
+                "message": "Document already loaded",
+                "stats": self.contract_metadata.get(str(pdf_path), {})
+            }
+    
         
         # 检查缓存
         cache_key = self._get_cache_key(pdf_path)
@@ -252,13 +264,20 @@ class AdvancedContractRAG:
             return "No documents loaded. Please load a contract first."
         
         # 获取要总结的文档
-        if pdf_path and pdf_path in self.documents:
+        """  if pdf_path and pdf_path in self.documents:
             docs_to_summarize = self.documents[pdf_path]
         else:
             docs_to_summarize = []
             for docs in self.documents.values():
                 docs_to_summarize.extend(docs)
-        
+        """
+        if pdf_path and pdf_path in self.documents:
+            docs_to_summarize = self.documents[pdf_path]
+        else:
+        # 最近一份
+            last_key = next(reversed(self.documents.keys()))
+            docs_to_summarize = self.documents[last_key]
+
         # 根据类型选择提示模板
         if summary_type == "brief":
             prompt_template = """
@@ -484,13 +503,35 @@ class AdvancedContractRAG:
             self.vectorstore.save_local(path)
             print(f"💾 Vector store saved to {path}")
     
-    def load_vectorstore(self, path: str = "vectorstore"):
-        """从磁盘加载向量存储"""
-        if os.path.exists(path):
-            self.vectorstore = FAISS.load_local(path, self.embeddings)
-            self.retriever = self.vectorstore.as_retriever()
-            print(f"📂 Vector store loaded from {path}")
     
+    
+    # 在 langchain_rag_system.py 中修改 load_vectorstore 方法
+
+    def load_vectorstore(self, path: str = "vectorstore", allow_dangerous_deserialization: bool = False):
+        """从磁盘加载向量存储
+        
+        Args:
+            path: 向量存储路径
+            allow_dangerous_deserialization: 是否允许加载pickle文件（仅在确信文件安全时使用）
+        """
+        if os.path.exists(path):
+            # 新版本LangChain需要显式允许反序列化
+            self.vectorstore = FAISS.load_local(
+                path, 
+                self.embeddings,
+                allow_dangerous_deserialization=allow_dangerous_deserialization
+            )
+            self.retriever = self.vectorstore.as_retriever(
+                search_type="mmr",
+                search_kwargs={
+                    "k": 5,
+                    "fetch_k": 10
+                }
+            )
+            print(f"📂 Vector store loaded from {path}")
+        else:
+            print(f"⚠️ Vector store path not found: {path}")
+
     def get_statistics(self) -> Dict:
         """获取系统统计信息"""
         total_chunks = sum(len(docs) for docs in self.documents.values())
@@ -502,18 +543,70 @@ class AdvancedContractRAG:
             "memory_size": len(self.memory.buffer) if hasattr(self.memory, 'buffer') else 0,
             "contracts": list(self.contract_metadata.values())
         }
+    
+    # 在 langchain_rag_system.py 的 AdvancedContractRAG 类中添加以下方法
+
+    def clear_all_documents(self):
+        """清空所有已加载的文档和向量存储
+        在加载新文件前调用，确保不会混合不同的合同
+        """
+        # 清空文档
+        self.documents.clear()
+        self.contract_metadata.clear()
+        
+        # 清空向量存储
+        self.vectorstore = None
+        self.retriever = None
+        
+        # 清空对话记忆
+        if hasattr(self, 'memory') and self.memory:
+            self.memory.clear()
+        
+        print("🧹 Cleared all documents and vector stores")
+
+    def get_current_documents_info(self):
+        """获取当前加载的文档信息"""
+        if not self.documents:
+            return "No documents loaded"
+        
+        info = []
+        for doc_path, chunks in self.documents.items():
+            info.append(f"📄 {Path(doc_path).name}: {len(chunks)} chunks")
+        
+        return "\n".join(info)
+
+    def ensure_single_document(self, file_path: str):
+        """确保只有一个文档被加载
+        
+        Args:
+            file_path: 要加载的文件路径
+        """
+        # 检查是否是同一个文件
+        if len(self.documents) == 1 and str(file_path) in self.documents:
+            print(f"✅ Same document already loaded: {Path(file_path).name}")
+            return True
+        
+        # 如果是不同文件，清空之前的
+        if self.documents and str(file_path) not in self.documents:
+            print(f"🔄 Different document detected, clearing previous data...")
+            self.clear_all_documents()
+        
+        return False
+        
+        
 
 
 # 使用示例
 if __name__ == "__main__":
-    from config import OPENAI_API_KEY, OPENAI_MODEL
+    #from config import OPENAI_API_KEY, OPENAI_MODEL
     
-    #api_key =os.getenv("OPENAI_API_KEY")
-    #model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+    api_key =os.getenv("OPENAI_API_KEY")
+    model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 
     # 初始化系统
-    rag = AdvancedContractRAG(api_key=OPENAI_API_KEY, model=OPENAI_MODEL)
+    rag = AdvancedContractRAG(api_key, model)
     
+
     # 加载PDF
     result = rag.load_pdf("documents/contract.pdf")
     print(result)
@@ -534,3 +627,5 @@ if __name__ == "__main__":
     print("\n📊 Key Information:")
     for key, value in key_info.items():
         print(f"  {key}: {value}")
+
+
