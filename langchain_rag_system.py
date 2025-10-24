@@ -11,7 +11,9 @@ import pickle
 from datetime import datetime
 
 # LangChain核心组件
-from langchain.document_loaders import PyMuPDFLoader, PDFPlumberLoader
+from langchain_community.document_loaders.pdf import PyMuPDFLoader, PDFPlumberLoader
+# 如只用其一，也可只留一个
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
@@ -25,7 +27,9 @@ from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
-from langchain.retrievers import ContextualCompressionRetriever
+
+from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
+
 from langchain.retrievers.document_compressors import LLMChainExtractor
 from langchain.callbacks import get_openai_callback
 
@@ -35,7 +39,6 @@ from pathlib import Path
 import json
 from dotenv import load_dotenv
 load_dotenv()
-
 class AdvancedContractRAG:
     """
     高级合同RAG系统
@@ -61,12 +64,20 @@ class AdvancedContractRAG:
         self.model = model
         self.language = language
         
-        # 初始化OpenAI组件
+        
+        # 设置代理（如果需要）
+        proxies = os.getenv("HTTPS_PROXY") or os.getenv("HTTP_PROXY")
+        if proxies:
+            # 对于需要代理的情况，可以设置环境变量
+            os.environ["OPENAI_PROXY"] = proxies
+
+        # 初始化OpenAI组件 - 使用兼容的参数
         self.llm = ChatOpenAI(
             temperature=0.01,
-            model=model,
+            model_name=model,  # 使用 model_name 而不是 model
             openai_api_key=api_key,
-            max_tokens=500
+            max_tokens=500,
+            request_timeout=60
         )
         
         self.embeddings = OpenAIEmbeddings(
@@ -75,7 +86,7 @@ class AdvancedContractRAG:
         
         # 文本分割器 - 智能分块
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=2000,        # 块大小
+            chunk_size=10000,        # 块大小
             chunk_overlap=200,     # 重叠部分保持上下文
             length_function=len,
             separators=["\n\n", "\n", "。", ".", " ", ""]  # 支持中英文
@@ -328,7 +339,7 @@ class AdvancedContractRAG:
         prompt = PromptTemplate(template=prompt_template, input_variables=["text"])
         
         with get_openai_callback() as cb:
-            if len(docs_to_summarize) > 10:
+            if len(docs_to_summarize) > 20:
                 # 长文档使用map_reduce策略
                 chain = load_summarize_chain(
                     self.llm,
@@ -401,7 +412,7 @@ class AdvancedContractRAG:
         sources = []
         for doc in result.get("source_documents", []):
             sources.append({
-                "content": (doc.page_content[:200] + "...") if doc.page_content else "",
+                "content": doc.page_content if doc.page_content else "",
                 "source": doc.metadata.get("source", "Unknown"),
                 "page": doc.metadata.get("page", "Unknown")
             })
@@ -601,7 +612,7 @@ if __name__ == "__main__":
     #from config import OPENAI_API_KEY, OPENAI_MODEL
     
     api_key =os.getenv("OPENAI_API_KEY")
-    model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+    model = os.getenv("OPENAI_MODEL", "gpt-4o")
 
     # 初始化系统
     rag = AdvancedContractRAG(api_key, model)
@@ -627,5 +638,3 @@ if __name__ == "__main__":
     print("\n📊 Key Information:")
     for key, value in key_info.items():
         print(f"  {key}: {value}")
-
-
