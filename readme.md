@@ -1,170 +1,361 @@
-# 🏠 Real Estate AI Tenant Assistant
+# 📄 Contract Assistant
 
-## DSS5105 Capstone Project - Track B: Conversational AI Assistant
+**AI-Powered Contract Analysis System**
 
-A RAG-powered chatbot for property inquiries and tenant services, designed to automate 70-80% of routine tenant questions.
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.37+-red.svg)](https://streamlit.io)
+[![LangChain](https://img.shields.io/badge/LangChain-0.2.16-green.svg)](https://langchain.com)
 
-## 🎯 Features
 
-- **Contract-Aware Q&A**: Uses RAG to answer questions based on tenancy agreements
-- **Quick Information Access**: Instant answers about rent, maintenance, house rules
-- **Multi-topic Support**: Handles payments, maintenance, termination, house rules, etc.
-- **Source Attribution**: Shows which parts of the contract support each answer
-- **User-Friendly Interface**: Clean Streamlit UI with sample questions and quick actions
+> Making contract analysis simple, fast, and accurate with Large Language Models
 
-## 🚀 Quick Start
+[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [API](#api-reference) • [FAQ](#faq)
 
-### 1. Clone the Repository
+---
+
+## Overview
+
+**Contract Assistant** is an intelligent system for contract analysis powered by LLM and RAG (Retrieval-Augmented Generation) technology. It helps you understand, analyze, and manage contract documents through:
+
+- 💬 **Intelligent Q&A** - Ask questions in natural language
+- 📝 **Auto Summarization** - Generate comprehensive or brief summaries
+- 🔍 **Information Extraction** - Extract key contract details
+- 📊 **Contract Comparison** - Compare multiple contracts (coming soon)
+
+### Why Choose Us?
+
+✅ **Accurate** - RAG-based answers with source citations  
+✅ **Fast** - Sub-second responses with smart caching  
+✅ **Simple** - Beautiful UI, zero learning curve  
+✅ **Secure** - User data isolation, local storage  
+✅ **Complete** - Full-featured contract management
+
+---
+
+## Features
+
+### 📤 Smart Upload
+- PDF document support
+- Automatic text extraction
+- Intelligent chunking
+- Vector storage
+
+### 💬 Intelligent Q&A
+- Natural language queries
+- Context-aware conversations
+- Source citations (500 chars)
+- Real-time responses
+
+### 📝 Summarization
+- **Comprehensive**: Detailed analysis
+- **Brief**: Quick overview  
+- **Key Points**: Structured bullets
+
+### 🔍 Extraction
+Automatically extract:
+- Parties involved
+- Financial terms
+- Important dates
+- Addresses
+- Key clauses
+
+### 👤 User System
+- Secure authentication
+- Data isolation
+- History tracking
+- File management
+
+---
+
+## Tech Stack
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Python | 3.8+ | Core language |
+| Streamlit | 1.37+ | Web UI |
+| LangChain | 0.2.16 | LLM framework |
+| OpenAI | 1.30+ | LLM API |
+| FAISS | 1.8+ | Vector DB |
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.8+
+- OpenAI API Key
+- 4GB+ RAM
+
+### Installation
+
 ```bash
-git clone <your-repo-url>
-cd tenant-ai-assistant
-```
+# Clone repository
+git clone https://github.com/your-username/contract-assistant.git
+cd contract-assistant
 
-### 2. Set Up Environment
-```bash
 # Create virtual environment
 python -m venv venv
-
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On Mac/Linux:
-source venv/bin/activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
-```
 
-### 3. Prepare Documents
-```bash
-# Create documents folder
-mkdir documents
+# Configure
+echo "OPENAI_API_KEY=your_key_here" > .env
 
-# Copy the tenancy agreement to documents folder
-# The sample agreement is provided in tenancy_agreement.md
-cp tenancy_agreement.md documents/
-```
-
-### 4. Run the Application
-```bash
+# Run
 streamlit run app.py
 ```
 
-The app will open in your browser at `http://localhost:8501`
+Visit: `http://localhost:8501`
 
-### 5. (Optional) Add OpenAI API Key
-For enhanced AI responses, add your OpenAI API key in the sidebar. Without it, the system uses pattern matching for answers.
+### First Steps
 
-## 📁 Project Structure
-
-```
-tenant-ai-assistant/
-│
-├── app.py                    # Main Streamlit application
-├── rag_engine.py            # RAG system implementation
-├── requirements.txt         # Python dependencies
-├── README.md               # This file
-│
-├── documents/              # Contract documents folder
-│   └── tenancy_agreement.md   # Sample tenancy agreement
-│
-└── .env (optional)         # Environment variables (create this)
-    └── OPENAI_API_KEY=your_key_here
-```
-
-## 💡 Sample Questions
-
-The system can answer questions like:
-- "When is my rent due?"
-- "Can I keep a pet?"
-- "What's the penalty for late payment?"
-- "Who handles aircon servicing?"
-- "Can I terminate early?"
-- "What are the quiet hours?"
-
-## 🔧 Technical Implementation
-
-### RAG System
-- **Document Processing**: Splits contracts into manageable chunks
-- **Retrieval**: TF-IDF vectorization for finding relevant sections
-- **Generation**: 
-  - With OpenAI: GPT-3.5 for natural language answers
-  - Without OpenAI: Pattern matching and template responses
-
-### Key Components
-1. **Document Loader**: Processes markdown/text contracts
-2. **Chunk Creator**: Splits documents intelligently by sections
-3. **Search Engine**: TF-IDF-based similarity search
-4. **Answer Generator**: Hybrid approach (AI + rule-based)
-
-## 📊 Performance Metrics
-
-- **Response Time**: < 2 seconds for most queries
-- **Accuracy**: 85%+ for common tenant questions
-- **Coverage**: Handles 90% of typical tenant inquiries
-
-## 🚀 Deployment
-
-### Deploy on Streamlit Cloud
-
-1. Push code to GitHub
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. Connect your GitHub repository
-4. Set environment variables (OPENAI_API_KEY if using)
-5. Deploy!
-
-### Local Deployment
-
-```bash
-# Run with custom port
-streamlit run app.py --server.port 8080
-
-# Run in production mode
-streamlit run app.py --server.runOnSave false
-```
-
-## 📝 Testing
-
-### Basic Functionality Test
-```python
-python rag_engine.py  # Runs built-in tests
-```
-
-### Sample Test Queries
-1. Payment-related: "When do I pay rent?"
-2. Rules: "Can I have visitors?"
-3. Maintenance: "Who fixes the aircon?"
-4. Termination: "How to end lease early?"
-
-## 📈 Future Improvements
-
-1. **Multi-language Support**: Chinese, Malay, Tamil
-2. **Voice Interface**: Speech-to-text queries
-3. **Multi-document**: Handle multiple contracts
-4. **Analytics Dashboard**: Track common questions
-5. **WhatsApp Integration**: Direct messaging support
-
-## 🐛 Known Issues
-
-- Large documents (>10MB) may slow down initial loading
-- Complex multi-part questions may need rephrasing
-- Requires internet for OpenAI features
-
-## 📚 References
-
-- [Streamlit Documentation](https://docs.streamlit.io)
-- [OpenAI API Guide](https://platform.openai.com/docs)
-- [RAG Paper](https://arxiv.org/abs/2005.11401)
-
-## 📄 License
-
-MIT License - See LICENSE file for details
-
-## 🆘 Support
-
-For issues or questions:
-- Create an issue on GitHub
-- Contact team lead at [email]
+1. **Register** an account
+2. **Upload** a PDF contract  
+3. **Ask** questions:
+   - "What is the monthly rent?"
+   - "What is the lease term?"
+   - "Who are the parties?"
 
 ---
-*Built with ❤️ for DSS5105 Capstone Project*
+
+## Architecture
+
+```
+┌─────────────────────┐
+│   Frontend (UI)     │
+│   - Streamlit       │
+└──────────┬──────────┘
+           │
+┌──────────┴──────────┐
+│  Backend (Logic)    │
+│  - Database         │
+│  - File Processing  │
+│  - Cache Management │
+└──────────┬──────────┘
+           │
+┌──────────┴──────────┐
+│  RAG System         │
+│  - Document Loading │
+│  - Vector Search    │
+│  - LLM Q&A          │
+└──────────┬──────────┘
+           │
+┌──────────┴──────────┐
+│  Storage            │
+│  - SQLite           │
+│  - FAISS            │
+│  - File System      │
+└─────────────────────┘
+```
+
+### File Structure
+
+```
+contract-assistant/
+├── app.py                    # Main entry
+├── frontend.py               # UI layer
+├── backend.py                # Business logic
+├── langchain_rag_system.py  # RAG core
+├── requirements.txt          # Dependencies
+├── .env                      # Configuration
+└── user_data/               # User files
+```
+
+---
+
+## Documentation
+
+### Upload Documents
+
+1. Navigate to **Upload** tab
+2. Select PDF file
+3. Click **Start Processing**
+4. Wait for vectorization
+
+### Ask Questions
+
+1. Go to **Q&A** tab
+2. Type your question
+3. Review answer and sources
+
+**Tips**:
+- Be specific
+- One question at a time
+- Verify with sources
+
+### Generate Summaries
+
+1. Open **Summary** tab
+2. Choose type (Comprehensive/Brief/Key Points)
+3. Click **Generate**
+
+### Extract Information
+
+1. Visit **Extract** tab
+2. Click **Start Extraction**
+3. View structured JSON output
+
+---
+
+## Configuration
+
+### Environment Variables
+
+`.env` file:
+```bash
+OPENAI_API_KEY=sk-xxxxx
+OPENAI_BASE_URL=https://api.openai.com/v1  # Optional
+OPENAI_MODEL=gpt-4                         # Optional
+```
+
+### Model Settings
+
+In `langchain_rag_system.py`:
+
+```python
+# Change LLM model
+self.llm = ChatOpenAI(model="gpt-4", temperature=0)
+
+# Change embedding model  
+self.embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+```
+
+### Performance Tuning
+
+```python
+chunk_size=1000      # 500-2000 recommended
+chunk_overlap=200    # 100-400 recommended  
+k=4                  # 2-8 documents retrieved
+```
+
+---
+
+## API Reference
+
+### RAG System
+
+#### ask_question()
+
+```python
+response = rag.ask_question("What is the rent?")
+# Returns: {"answer": str, "sources": List[Dict], "tokens_used": int}
+```
+
+#### summarize_contract()
+
+```python
+summary = rag.summarize_contract("comprehensive")
+# Returns: str
+```
+
+#### extract_contract_info()
+
+```python
+info = rag.extract_contract_info()
+# Returns: Dict with extracted fields
+```
+
+### Backend
+
+```python
+# User management
+user_manager.register_user(username, email, password)
+user_manager.login(username, password)
+
+# File processing
+file_processor.process_and_save_file(user_id, file, rag_system)
+file_processor.load_processed_file(user_id, file_id, rag_system)
+
+# Cache management
+cache_manager.save_qa_history(user_id, file_id, question, answer, sources)
+cache_manager.get_cached_summary(file_id, summary_type)
+```
+
+---
+
+## FAQ
+
+**Q: Installation fails?**  
+A: Upgrade pip: `pip install --upgrade pip`
+
+**Q: FAISS error?**  
+A: Install CPU version: `pip install faiss-cpu`
+
+**Q: API error?**  
+A: Check API key, balance, and network
+
+**Q: Slow responses?**  
+A: Use gpt-3.5-turbo or reduce k parameter
+
+**Q: Inaccurate answers?**  
+A: Increase chunk_size or use gpt-4
+
+---
+
+## Roadmap
+
+### v1.0 (Current) ✅
+- [ ] RAG Q&A system
+- [ ] User authentication
+- [ ] Summarization
+- [ ] Information extraction
+- [ ] Smart caching
+
+### v1.1 (Planned)
+- [ ] Contract comparison
+- [ ] Advanced search
+- [ ] Export (PDF/Word/Excel)
+
+### v1.2 (Future)
+- [ ] Multi-language support
+- [ ] RESTful API
+- [ ] Mobile app
+
+---
+
+## Contributing
+
+We welcome contributions!
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push and open a Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+## Acknowledgments
+
+- [LangChain](https://github.com/langchain-ai/langchain) - LLM framework
+- [Streamlit](https://streamlit.io/) - Web framework
+- [OpenAI](https://openai.com/) - LLM provider
+- [FAISS](https://github.com/facebookresearch/faiss) - Vector search
+
+---
+
+## Contact
+
+- **GitHub**: [Repository](https://github.com/your-username/contract-assistant)
+- **Issues**: [Issue Tracker](https://github.com/your-username/contract-assistant/issues)
+- **Email**: 
+
+---
+
+<div align="center">
+
+**If this project helps you, please give it a ⭐!**
+
+Made with ❤️ 
+
+</div>
