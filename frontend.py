@@ -1,8 +1,9 @@
 # frontend.py
+# frontend.py
 """
-前端界面层
-使用 Streamlit 构建用户界面
-负责所有页面渲染和用户交互
+Frontend Interface Layer
+Build user interface using Streamlit
+Responsible for all page rendering and user interaction
 """
 
 import streamlit as st
@@ -10,9 +11,10 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 import os
 from dotenv import load_dotenv
+import pandas as pd
 load_dotenv()
 
-# 导入后端类
+# Import backend classes
 from backend import (
     DatabaseManager,
     UserManager,
@@ -20,24 +22,24 @@ from backend import (
     CacheManager
 )
 
-# 导入 RAG 系统
+# Import RAG system
 from langchain_rag_system import AdvancedContractRAG
 
 # ==================================================
-# 前端界面类
+# Frontend Interface Class
 # ==================================================
 
 class ContractAssistantApp:
-    """主应用程序"""
+    """Main application"""
     
     def __init__(self):
-        # 初始化管理器
+        # Initialize managers
         self.db_manager = DatabaseManager()
         self.user_manager = UserManager(self.db_manager)
         self.file_processor = FileProcessor(self.db_manager)
         self.cache_manager = CacheManager(self.db_manager)
         
-        # 初始化session state
+        # Initialize session state
         if 'authenticated' not in st.session_state:
             st.session_state.authenticated = False
         if 'user_id' not in st.session_state:
@@ -52,16 +54,16 @@ class ContractAssistantApp:
             st.session_state.messages = []
     
     def login_page(self):
-        """登录页面"""
+        """Login page"""
         st.title("📄 Contract Assistant - Login")
         
-        tab1, tab2 = st.tabs(["登录", "注册"])
+        tab1, tab2 = st.tabs(["Login", "Register"])
         
         with tab1:
             with st.form("login_form"):
-                username = st.text_input("用户名")
-                password = st.text_input("密码", type="password")
-                submitted = st.form_submit_button("登录")
+                username = st.text_input("Username")
+                password = st.text_input("Password", type="password")
+                submitted = st.form_submit_button("Login")
                 
                 if submitted:
                     result = self.user_manager.login(username, password)
@@ -69,58 +71,58 @@ class ContractAssistantApp:
                         st.session_state.authenticated = True
                         st.session_state.user_id = result["user_id"]
                         st.session_state.username = result["username"]
-                        st.success("登录成功!")
+                        st.success("Login successful!")
                         st.rerun()
                     else:
-                        st.error("用户名或密码错误")
+                        st.error("Incorrect username or password")
         
         with tab2:
             with st.form("register_form"):
-                new_username = st.text_input("用户名")
-                new_email = st.text_input("邮箱")
-                new_password = st.text_input("密码", type="password")
-                confirm_password = st.text_input("确认密码", type="password")
-                submitted = st.form_submit_button("注册")
+                new_username = st.text_input("Username")
+                new_email = st.text_input("Email")
+                new_password = st.text_input("Password", type="password")
+                confirm_password = st.text_input("Confirm Password", type="password")
+                submitted = st.form_submit_button("Register")
                 
                 if submitted:
                     if new_password != confirm_password:
-                        st.error("两次密码输入不一致")
+                        st.error("Passwords do not match")
                     elif len(new_password) < 6:
-                        st.error("密码至少6位")
+                        st.error("Password must be at least 6 characters")
                     else:
                         result = self.user_manager.register_user(
                             new_username, new_email, new_password
                         )
                         if result["success"]:
-                            st.success("注册成功!请登录")
+                            st.success("Registration successful! Please login")
                         else:
-                            st.error(result.get("message", "注册失败"))
+                            st.error(result.get("message", "Registration failed"))
     
     def init_user_rag_system(self):
-        """初始化用户的RAG系统"""
+        """Initialize user's RAG system"""
         if st.session_state.rag_system is None:
             st.session_state.rag_system = AdvancedContractRAG(
                 api_key=os.getenv("OPENAI_API_KEY"),
                 model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
             )
-            # 设置用户专属缓存目录
+            # Set user-specific cache directory
             user_cache_dir = Path(f"user_data/{st.session_state.user_id}/cache")
             user_cache_dir.mkdir(parents=True, exist_ok=True)
             st.session_state.rag_system.cache_dir = user_cache_dir
     
     def main_app(self):
-        """主应用界面"""
+        """Main application interface"""
         st.set_page_config(page_title="Contract Assistant", page_icon="📄", layout="wide")
         
-        # 初始化RAG系统
+        # Initialize RAG system
         self.init_user_rag_system()
         
-        # 侧边栏
+        # Sidebar
         with st.sidebar:
-            st.write(f"👤 用户: **{st.session_state.username}**")
+            st.write(f"👤 User: **{st.session_state.username}**")
             
-            if st.button("退出登录"):
-                # ⭐ 关键修改6: 退出时清理RAG系统
+            if st.button("Logout"):
+                # ⭐ Key modification 6: Clean up RAG system on logout
                 if st.session_state.rag_system:
                     st.session_state.rag_system.clear_all_documents()
                 for key in list(st.session_state.keys()):
@@ -129,8 +131,8 @@ class ContractAssistantApp:
             
             st.divider()
             
-            # 显示最近的文件
-            st.subheader("📁 最近的文件")
+            # Display recent files
+            st.subheader("📁 Recent Files")
             recent_files = self.file_processor.get_recent_files(st.session_state.user_id)
             
             if recent_files:
@@ -139,33 +141,33 @@ class ContractAssistantApp:
                     with col1:
                         st.write(f"📄 {file['filename'][:20]}...")
                     with col2:
-                        if st.button("加载", key=f"load_{file['file_id']}"):
+                        if st.button("Load", key=f"load_{file['file_id']}"):
                             if self.file_processor.load_processed_file(
                                 st.session_state.user_id,
                                 file['file_id'],
                                 st.session_state.rag_system
                             ):
                                 st.session_state.current_file_id = file['file_id']
-                                # ⭐ 关键修改7: 切换文件时清空聊天历史
+                                # ⭐ Key modification 7: Clear chat history when switching files
                                 st.session_state.messages = []
-                                st.success("文件已加载")
+                                st.success("File loaded")
                                 st.rerun()
                     
-                    # 显示文件信息
-                    with st.expander(f"详情"):
-                        st.write(f"页数: {file['num_pages']}")
-                        st.write(f"分块数: {file['num_chunks']}")
-                        st.write(f"上传时间: {file['upload_time']}")
+                    # Display file information
+                    with st.expander(f"Details"):
+                        st.write(f"Pages: {file['num_pages']}")
+                        st.write(f"Chunks: {file['num_chunks']}")
+                        st.write(f"Upload time: {file['upload_time']}")
             else:
-                st.info("还没有上传文件")
+                st.info("No files uploaded yet")
         
-        # 主界面
-        st.title("📄 智能合同助手")
+        # Main interface
+        st.title("📄 Intelligent Contract Assistant")
         
-        # 当前加载的文件信息栏
+        # Current loaded file information bar
         current_file_info = None
         if st.session_state.current_file_id:
-            # 获取当前文件的详细信息
+            # Get detailed information about current file
             for file in recent_files:
                 if file['file_id'] == st.session_state.current_file_id:
                     current_file_info = file
@@ -174,33 +176,33 @@ class ContractAssistantApp:
             if current_file_info:
                 col1, col2, col3 = st.columns([2, 1, 1])
                 with col1:
-                    st.success(f"📄 当前文件: **{current_file_info['filename']}**")
+                    st.success(f"📄 Current file: **{current_file_info['filename']}**")
                 with col2:
-                    st.info(f"页数: {current_file_info['num_pages']}")
+                    st.info(f"Pages: {current_file_info['num_pages']}")
                 with col3:
-                    if st.button("🔄 切换文件"):
+                    if st.button("🔄 Switch File"):
                         st.session_state.current_file_id = None
-                        st.session_state.messages = []  # 清空聊天历史
-                        # ⭐ 关键修改8: 切换文件时清理RAG系统
+                        st.session_state.messages = []  # Clear chat history
+                        # ⭐ Key modification 8: Clean RAG system when switching files
                         st.session_state.rag_system.clear_all_documents()
                         st.rerun()
             else:
-                st.info(f"当前文件ID: {st.session_state.current_file_id}")
+                st.info(f"Current file ID: {st.session_state.current_file_id}")
         else:
-            st.warning("📂 请从左侧选择或上传一个文件")
+            st.warning("📂 Please select or upload a file from the left sidebar")
         
-        # 标签页
+        # Create tabs for different functions
         tab1, tab2, tab3, tab4, tab5 = st.tabs([
-            "📤 上传", "💬 问答", "📝 总结", "🔍 提取", "📊 对比"
+            "📤 Upload", "💬 Q&A", "📝 Summary", "🔍 Extract Info", "⚖️ Compare"
         ])
         
-        # Tab1: 上传
+        # Tab1: Upload
         with tab1:
-            uploaded_file = st.file_uploader("上传合同 (PDF)", type=['pdf'])
+            uploaded_file = st.file_uploader("Upload Contract (PDF)", type=['pdf'])
             
             if uploaded_file:
-                if st.button("处理文件"):
-                    with st.spinner("处理中..."):
+                if st.button("Start Processing"):
+                    with st.spinner("Processing file..."):
                         result = self.file_processor.process_and_save_file(
                             st.session_state.user_id,
                             uploaded_file,
@@ -209,76 +211,114 @@ class ContractAssistantApp:
                         
                         if result["success"]:
                             st.session_state.current_file_id = result["file_id"]
-                            # ⭐ 关键修改9: 上传新文件时清空聊天历史
+                            # ⭐ Key modification 9: Clear chat history when uploading new file
                             st.session_state.messages = []
-                            st.success("文件处理完成!")
+                            st.success("File processed successfully!")
                             
-                            # 显示统计
+                            # Display processing information
                             stats = result.get("stats", {})
                             col1, col2, col3 = st.columns(3)
                             with col1:
-                                st.metric("页数", stats.get("pages", 0))
+                                st.metric("Total pages", stats.get("pages", 0))
                             with col2:
-                                st.metric("分块数", stats.get("chunks", 0))
+                                st.metric("Total chunks", stats.get("chunks", 0))
                             with col3:
-                                st.metric("字符数", f"{stats.get('characters', 0):,}")
+                                st.metric("File size", f"{stats.get('characters', 0):,}")
                         else:
-                            st.error(result.get("error", "处理失败"))
+                            st.error(result.get("error", "Processing failed"))
         
-        # Tab2: 问答
+        # Tab2: Q&A
         with tab2:
             if not st.session_state.current_file_id:
-                st.warning("请先上传或加载一个文件")
+                st.warning("Please upload or load a file first")
             else:
-                # ⭐ 新增: 显示当前正在使用的合同信息
+                # ⭐ New: Display current contract information in use
                 if current_file_info:
-                    st.info(f"🎯 当前问答针对的合同: **{current_file_info['filename']}**")
+                    st.info(f"🎯 Current Q&A for contract: **{current_file_info['filename']}**")
                 
-                # ⭐ 新增: 显示当前RAG系统加载的文档信息(调试用)
-                if st.checkbox("🔍 显示系统状态(调试)", value=False):
+                
+                """ # ⭐ 新增: 显示当前RAG系统加载的文档信息(调试用)
+                if st.checkbox("🔍 system debugging", value=False):
                     try:
                         rag_info = st.session_state.rag_system.get_current_documents_info()
                         st.code(rag_info)
                         
-                        # 显示统计信息
+                        # Display processing information信息
                         stats = st.session_state.rag_system.get_statistics()
                         st.json(stats)
                     except Exception as e:
-                        st.error(f"无法获取系统状态: {e}")
+                        st.error(f"无法获取系统状态: {e}") """
                 
-                # 聊天界面 - 显示历史消息
-                for message in st.session_state.messages:
+                # Chat interface - Display chat history
+                for msg_idx, message in enumerate(st.session_state.messages):
                     with st.chat_message(message["role"]):
                         st.write(message["content"])
-                        # 如果有来源信息,显示在展开框中
+                        # Display sources if available (same format as new messages)
                         if message.get("sources"):
-                            with st.expander("📚 来源"):
-                                for source in message["sources"]:
-                                    st.write(f"• {source}")
+                            with st.expander("📚 Reference Sources"):
+                                for i, source in enumerate(message["sources"], 1):
+                                    st.markdown(f"**📄 Source {i} - Page {source.get('page', 'N/A')}**")
+                                    
+                                    content = source.get('content', '')
+                                    
+                                    # Display preview (first 300 characters)
+                                    preview_length = 300
+                                    if len(content) <= preview_length:
+                                        st.text_area(
+                                            f"Source content",
+                                            content,
+                                            height=100,
+                                            key=f"hist_src_{msg_idx}_{i}",
+                                            label_visibility="collapsed"
+                                        )
+                                    else:
+                                        # Display preview with expand option
+                                        st.text_area(
+                                            f"Source preview",
+                                            content[:preview_length] + "...",
+                                            height=100,
+                                            key=f"hist_prev_{msg_idx}_{i}",
+                                            label_visibility="collapsed"
+                                        )
+                                        
+                                        with st.expander(f"🔍 View Full Content ({len(content)} characters)"):
+                                            st.text_area(
+                                                f"Full content",
+                                                content,
+                                                height=300,
+                                                key=f"hist_full_{msg_idx}_{i}",
+                                                label_visibility="collapsed"
+                                            )
+                                    
+                                    if i < len(message["sources"]):
+                                        st.divider()
                 
-                # 输入框
-                if prompt := st.chat_input("关于合同的问题..."):
-                    # ⭐ 关键修改10: 在回答前再次验证文档状态
+                # Chat input
+                # Add disclaimer below the chat input
+                st.caption("AI can make mistakes. Please verify important information.")
+                
+                if prompt := st.chat_input("Ask a question about the contract..."):
+                    # ⭐ Key modification 10: Validate document status before answering
                     try:
                         current_docs = st.session_state.rag_system.get_current_documents_info()
                         if not current_docs or current_docs == "No documents loaded":
-                            st.error("❌ 系统错误: 没有加载的文档,请重新加载合同")
+                            st.error("❌ System error: No documents loaded, please reload the contract")
                             st.stop()
                     except Exception as e:
                         st.error(f"❌ 文档验证失败: {e}")
                         st.stop()
                     
-                    # 立即显示用户问题
+                    # Display user question immediately
                     st.session_state.messages.append({"role": "user", "content": prompt})
                     with st.chat_message("user"):
                         st.write(prompt)
                     
-                    # 显示助手正在思考
+                    # Display assistant thinking
                     with st.chat_message("assistant"):
-                        with st.spinner("思考中..."):
+                        with st.spinner("Thinking..."):
                             response = st.session_state.rag_system.ask_question(prompt)
                             
-                            # 保存到历史
+                            # Save to history
                             self.cache_manager.save_qa_history(
                                 st.session_state.user_id,
                                 st.session_state.current_file_id,
@@ -287,41 +327,41 @@ class ContractAssistantApp:
                                 response.get("sources", [])
                             )
                             
-                            # 显示答案
+                            # Display answer
                             st.write(response["answer"])
                             
-                            # 显示来源
+                            # Display sources
                             if response.get("sources"):
-                                with st.expander("📚 来源参考", expanded=True):
+                                with st.expander("📚 Reference Sources", expanded=True):
                                     for i, source in enumerate(response["sources"], 1):
-                                        st.markdown(f"**📄 来源 {i} - 页面 {source.get('page', 'N/A')}**")
+                                        st.markdown(f"**📄 Source {i} - Page {source.get('page', 'N/A')}**")
                                         
                                         content = source.get('content', '')
                                         
-                                        # 显示预览（前500字符）
+                                        # Display preview (first 500 characters)
                                         preview_length = 500
                                         if len(content) <= preview_length:
                                             st.text_area(
-                                                f"来源内容_{i}",
+                                                f"Source content_{i}",
                                                 content,
                                                 height=150,
                                                 key=f"source_preview_{i}",
                                                 label_visibility="collapsed"
                                             )
                                         else:
-                                            # 显示预览
+                                            # Display preview
                                             st.text_area(
-                                                f"来源内容预览_{i}",
+                                                f"Source content preview_{i}",
                                                 content[:preview_length] + "...",
                                                 height=150,
                                                 key=f"source_preview_{i}",
                                                 label_visibility="collapsed"
                                             )
                                             
-                                            # 提供查看完整内容的选项
+                                            # Provide option to view full content
                                             with st.expander(f"🔍 查看完整内容 ({len(content)} 字符)"):
                                                 st.text_area(
-                                                    f"完整内容_{i}",
+                                                    f"Full content_{i}",
                                                     content,
                                                     height=300,
                                                     key=f"source_full_{i}",
@@ -331,50 +371,50 @@ class ContractAssistantApp:
                                         if i < len(response["sources"]):
                                             st.divider()
                             #------
-                            # 保存助手消息到历史
+                            # Save assistant message to history
                             st.session_state.messages.append({
                                 "role": "assistant",
                                 "content": response["answer"],
                                 "sources": response.get("sources", [])
                             })
                 
-                # 清除聊天历史按钮
+                # Clear chat history button
                 col1, col2 = st.columns([1, 4])
                 with col1:
-                    if st.button("🗑️ 清除对话"):
+                    if st.button("🗑️ Clear Chat"):
                         st.session_state.messages = []
-                        # ⭐ 关键修改11: 同时清除RAG系统的记忆
+                        # ⭐ Key modification 11: Also clear RAG system's memory
                         if hasattr(st.session_state.rag_system, 'memory'):
                             st.session_state.rag_system.memory.clear()
                         st.rerun()
         
-        # Tab3: 总结
+        # Tab3: Summary
         with tab3:
             if not st.session_state.current_file_id:
-                st.warning("请先上传或加载一个文件")
+                st.warning("Please upload or load a file first")
             else:
                 summary_type = st.selectbox(
-                    "总结类型",
+                    "Summary Type",
                     ["brief", "comprehensive", "key_points"]
                 )
                 
-                if st.button("生成总结"):
-                    # 先检查缓存
+                if st.button("Generate Summary"):
+                    # Check cache first
                     cached = self.cache_manager.get_cached_summary(
                         st.session_state.current_file_id,
                         summary_type
                     )
                     
                     if cached:
-                        st.success("使用缓存的总结")
+                        st.success("Using cached summary")
                         st.write(cached)
                     else:
-                        with st.spinner("生成总结中..."):
+                        with st.spinner("Generating summary..."):
                             summary = st.session_state.rag_system.summarize_contract(
                                 summary_type=summary_type
                             )
                             
-                            # 保存到缓存
+                            # Save to cache
                             self.cache_manager.save_summary(
                                 st.session_state.current_file_id,
                                 st.session_state.user_id,
@@ -384,70 +424,69 @@ class ContractAssistantApp:
                             
                             st.write(summary)
         
-        # Tab4: 信息提取
+        # Tab4: 信息Extract Info
         with tab4:
             if not st.session_state.current_file_id:
-                st.warning("请先上传或加载一个文件")
+                st.warning("Please upload or load a file first")
             else:
-                if st.button("提取关键信息"):
+                if st.button("Extract Key Information"):
                     # 检查缓存
                     cached = self.cache_manager.get_cached_extraction(
                         st.session_state.current_file_id
                     )
                     
                     if cached:
-                        st.success("使用缓存的提取结果")
+                        st.success("Using cached extraction results")
                         key_info = cached
                     else:
-                        with st.spinner("提取中..."):
-                            key_info = st.session_state.rag_system.extract_key_information()
+                        with st.spinner("Extracting..."):
+                            key_info = st.session_state.rag_system.extract_key_information_parallel()
                             
-                            # 保存到缓存
+                            # Save to cache
                             self.cache_manager.save_extraction(
                                 st.session_state.current_file_id,
                                 st.session_state.user_id,
                                 key_info
                             )
                     
-                    # 显示结果
+                    # Display results
                     df = pd.DataFrame([
-                        {"字段": k, "值": v} for k, v in key_info.items()
+                        {"Field": k, "Value": v} for k, v in key_info.items()
                     ])
                     st.dataframe(df, use_container_width=True)
         
-        # Tab5: 对比(简化版)
+        # Tab5: Compare(简化版)
         with tab5:
-            st.info("请加载两个文件进行对比")
+            st.info("Load two files to compare")
             
-            # 获取所有已处理的文件
+            # Get all processed files
             all_files = self.file_processor.get_recent_files(st.session_state.user_id, limit=20)
             
             if len(all_files) < 2:
-                st.warning("至少需要2个文件才能进行对比")
+                st.warning("At least 2 files are required for comparison")
             else:
                 col1, col2 = st.columns(2)
                 
                 with col1:
                     file1_options = {f['file_id']: f['filename'] for f in all_files}
-                    file1_id = st.selectbox("选择文件1", options=list(file1_options.keys()), 
+                    file1_id = st.selectbox("Select File 1", options=list(file1_options.keys()), 
                                            format_func=lambda x: file1_options[x])
                 
                 with col2:
                     file2_options = {f['file_id']: f['filename'] for f in all_files if f['file_id'] != file1_id}
                     if file2_options:
-                        file2_id = st.selectbox("选择文件2", options=list(file2_options.keys()), 
+                        file2_id = st.selectbox("Select File 2", options=list(file2_options.keys()), 
                                                format_func=lambda x: file2_options[x])
                     else:
-                        st.warning("请选择不同的文件")
+                        st.warning("Please select different files")
                         file2_id = None
                 
-                if file1_id and file2_id and st.button("开始对比"):
-                    st.info("对比功能开发中... 需要加载两份合同进行分析")
+                if file1_id and file2_id and st.button("Start Comparison"):
+                    st.info("Comparison feature under development... Need to load two contracts for analysis")
     
     def run(self):
-        """运行应用"""
+        """Run application"""
         if st.session_state.authenticated:
             self.main_app()
         else:
             self.login_page()
-

@@ -9,7 +9,7 @@ from typing import List, Dict, Optional, Tuple
 import hashlib
 import pickle
 from datetime import datetime
-
+import pandas as pd
 # LangChain核心组件
 from langchain_community.document_loaders.pdf import PyMuPDFLoader, PDFPlumberLoader
 # 如只用其一，也可只留一个
@@ -154,8 +154,8 @@ class AdvancedContractRAG:
         
         # 尝试多种PDF加载器
         documents = None
-        loader_used = None
-        
+   
+           
         # 方法1: PDFPlumber (最好的表格支持)
         try:
             loader = PDFPlumberLoader(str(pdf_path))
@@ -248,10 +248,10 @@ class AdvancedContractRAG:
             
             # 创建增强检索器
             self.retriever = self.vectorstore.as_retriever(
-                search_type="mmr",  # Maximum Marginal Relevance
+                search_type="similarity",  # Maximum Marginal Relevance
                 search_kwargs={
-                    "k": 5,  # 返回5个最相关的块
-                    "fetch_k": 10  # 先获取10个候选
+                    "k": 8,  # 返回5个最相关的块
+                    #"fetch_k": 10  # 先获取10个候选
                 }
             )
             print(f"✅ Vector store ready")
@@ -498,11 +498,78 @@ class AdvancedContractRAG:
         extracted_info = {}
         
         for key, query in extraction_queries.items():
-            result = self.ask_question(query, use_compression=True)
+            result = self.ask_question(query, use_compression=False)
             extracted_info[key] = result["answer"]
         
         return extracted_info
     
+
+    def extract_key_information_parallel(self) -> Dict:
+        """
+        并行版本的信息提取 - 速度提升5-10倍
+        使用ThreadPoolExecutor并行调用OpenAI API
+        
+        Returns:
+            包含关键信息的字典
+        """
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        import time
+        
+        if not self.vectorstore:
+            return {"error": "No contract loaded"}
+        
+        # 定义要提取的关键信息
+        extraction_queries = {
+            "rent_amount": "What is the monthly rent amount?",
+            "lease_duration": "What is the lease duration or term?",
+            "security_deposit": "What is the security deposit amount?",
+            "payment_due_date": "When is rent due each month?",
+            "late_fee": "What is the late payment fee or penalty?",
+            "pet_policy": "What is the pet policy?",
+            "maintenance": "What are the maintenance responsibilities?",
+            "termination": "What are the early termination conditions?",
+            "utilities": "Who is responsible for utilities?",
+            "parking": "What are the parking arrangements?"
+        }
+        
+        extracted_info = {}
+        start_time = time.time()
+        
+        # 使用线程池并行执行
+        # max_workers=5: 同时执行5个查询（保守，避免触发API限制）
+        # max_workers=10: 同时执行10个查询（激进，速度最快）
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            # 提交所有任务
+            future_to_key = {
+                executor.submit(
+                    self.ask_question, 
+                    query, 
+                    use_compression=False  # 关闭压缩，进一步提速
+                ): key
+                for key, query in extraction_queries.items()
+            }
+            
+            # 收集结果（按完成顺序）
+            completed = 0
+            total = len(extraction_queries)
+            
+            for future in as_completed(future_to_key):
+                key = future_to_key[future]
+                try:
+                    result = future.result()
+                    extracted_info[key] = result["answer"]
+                    completed += 1
+                    print(f"✅ [{completed}/{total}] Extracted: {key}")
+                except Exception as e:
+                    extracted_info[key] = f"Error: {str(e)}"
+                    completed += 1
+                    print(f"❌ [{completed}/{total}] Failed: {key} - {e}")
+        
+        elapsed = time.time() - start_time
+        print(f"🎉 All extractions completed in {elapsed:.2f} seconds")
+        
+        return extracted_info
+
     def clear_memory(self):
         """清除对话历史"""
         self.memory.clear()

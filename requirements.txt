@@ -7,9 +7,7 @@ requests>=2.32.3
 tqdm>=4.66.4
 typing-extensions>=4.10.0
 
-# --- LangChain ecosystem (OLD VERSION - 与代码兼容) ---
-# 注意：代码使用的是 LangChain 0.0.x 旧版 API
-# 如果升级到 0.2.x，需要大量修改代码中的导入和参数
+# --- LangChain and LLMs ---
 langchain==0.2.16
 langchain-community==0.2.16
 openai==1.109.1
