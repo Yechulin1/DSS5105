@@ -28,6 +28,19 @@ from langchain_rag_system import AdvancedContractRAG
 # ==================================================
 # Frontend Interface Class
 # ==================================================
+import re
+
+def _render_markdown_safe(text: str):
+    """在 Markdown 渲染前安全转义，使 $ 不触发 LaTeX。"""
+    if not isinstance(text, str):
+        text = str(text)
+    # 先保护真正的 $$...$$ 数学块（很少见，但以防万一）
+    text = re.sub(r'\$\$(.*?)\$\$', lambda m: r'\\$\\$' + m.group(1) + r'\\$\\$', text, flags=re.S)
+    # 再把所有单个 $ 转义为 \$
+    text = text.replace('$', r'\$')
+    # 用 markdown 渲染（不用 unsafe_allow_html）
+    import streamlit as st
+    st.markdown(text)
 
 class ContractAssistantApp:
     """Main application"""
@@ -102,8 +115,8 @@ class ContractAssistantApp:
         """Initialize user's RAG system"""
         if st.session_state.rag_system is None:
             st.session_state.rag_system = AdvancedContractRAG(
-                api_key=os.getenv("OPENAI_API_KEY"),
-                model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+                api_key=st.secrets("OPENAI_API_KEY"),
+                model=st.secrets.get("OPENAI_MODEL", "gpt-3.5-turbo")
             )
             # Set user-specific cache directory
             user_cache_dir = Path(f"user_data/{st.session_state.user_id}/cache")
@@ -257,7 +270,12 @@ class ContractAssistantApp:
                         if message.get("sources"):
                             with st.expander("📚 Reference Sources"):
                                 for i, source in enumerate(message["sources"], 1):
-                                    st.markdown(f"**📄 Source {i} - Page {source.get('page', 'N/A')}**")
+                                    page_number = source.get('page', 'N/A')
+                                    if page_number is not None and isinstance(page_number, int):
+                                        page_number += 1  # 将页面编号从 0 改为 1 开始
+                                    else:
+                                        page_number = 'N/A'
+                                    st.markdown(f"**📄 Source {i} - Page {page_number}**")
                                     
                                     content = source.get('content', '')
                                     
@@ -345,7 +363,7 @@ class ContractAssistantApp:
                                                 f"Source content_{i}",
                                                 content,
                                                 height=150,
-                                                key=f"source_preview_{i}",
+                                                key=f"new_source_preview_{len(st.session_state.messages)}_{i}",  # ← 加上消息计数
                                                 label_visibility="collapsed"
                                             )
                                         else:
@@ -354,19 +372,18 @@ class ContractAssistantApp:
                                                 f"Source content preview_{i}",
                                                 content[:preview_length] + "...",
                                                 height=150,
-                                                key=f"source_preview_{i}",
+                                                key=f"new_source_preview_long_{len(st.session_state.messages)}_{i}",  # ← 唯一key
                                                 label_visibility="collapsed"
                                             )
-                                            
                                             # Provide option to view full content
-                                            with st.expander(f"🔍 查看完整内容 ({len(content)} 字符)"):
+                                            with st.expander(f"🔍 View full content ({len(content)} Characters)"):
                                                 st.text_area(
-                                                    f"Full content_{i}",
-                                                    content,
-                                                    height=300,
-                                                    key=f"source_full_{i}",
-                                                    label_visibility="collapsed"
-                                                )
+                                                        f"Full content_{i}",
+                                                        content,
+                                                        height=300,
+                                                        key=f"new_source_full_{len(st.session_state.messages)}_{i}",  # ← 唯一key
+                                                        label_visibility="collapsed"
+                                                    )
                                         
                                         if i < len(response["sources"]):
                                             st.divider()
@@ -422,7 +439,8 @@ class ContractAssistantApp:
                                 summary
                             )
                             
-                            st.write(summary)
+                            _render_markdown_safe(summary)
+
         
         # Tab4: 信息Extract Info
         with tab4:

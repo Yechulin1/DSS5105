@@ -112,7 +112,91 @@ class AdvancedContractRAG:
         # 缓存目录
         self.cache_dir = Path("cache")
         self.cache_dir.mkdir(exist_ok=True)
+
+    def _normalize_text(self, text: str) -> str:
+        """
+        标准化文本中的Unicode字符
+        将数学斜体等特殊字符转换为普通ASCII
         
+        Args:
+            text: 原始文本
+            
+        Returns:
+            标准化后的文本
+        """
+        import unicodedata
+        
+        # 数学斜体字符映射 (U+1D400-U+1D7FF)
+        math_italic_lowercase = {
+            '𝑎': 'a', '𝑏': 'b', '𝑐': 'c', '𝑑': 'd', '𝑒': 'e', '𝑓': 'f',
+            '𝑔': 'g', '𝘩': 'h', '𝑖': 'i', '𝑗': 'j', '𝑘': 'k', '𝑙': 'l',
+            '𝑚': 'm', '𝑛': 'n', '𝑜': 'o', '𝑝': 'p', '𝑞': 'q', '𝑟': 'r',
+            '𝑠': 's', '𝑡': 't', '𝑢': 'u', '𝑣': 'v', '𝑤': 'w', '𝑥': 'x',
+            '𝑦': 'y', '𝑧': 'z',
+        }
+        
+        math_italic_uppercase = {
+            '𝐴': 'A', '𝐵': 'B', '𝐶': 'C', '𝐷': 'D', '𝐸': 'E', '𝐹': 'F',
+            '𝐺': 'G', '𝐻': 'H', '𝐼': 'I', '𝐽': 'J', '𝐾': 'K', '𝐿': 'L',
+            '𝑀': 'M', '𝑁': 'N', '𝑂': 'O', '𝑃': 'P', '𝑄': 'Q', '𝑅': 'R',
+            '𝑆': 'S', '𝑇': 'T', '𝑈': 'U', '𝑉': 'V', '𝑊': 'W', '𝑋': 'X',
+            '𝑌': 'Y', '𝑍': 'Z',
+        }
+        
+        # 其他特殊字符
+        special_chars = {
+            'ℎ': 'h',   # PLANCK CONSTANT
+            '℘': 'P',   # SCRIPT CAPITAL P
+            'ℓ': 'l',   # SCRIPT SMALL L
+            'ℯ': 'e',   # SCRIPT SMALL E
+            'ℊ': 'g',   # SCRIPT SMALL G
+            'ℴ': 'o',   # SCRIPT SMALL O
+        }
+        
+        # 合并所有映射
+        char_map = {**math_italic_lowercase, **math_italic_uppercase, **special_chars}
+        
+        # 逐字符替换
+        result = []
+        for char in text:
+            result.append(char_map.get(char, char))
+        
+        text = ''.join(result)
+
+        text = text.replace('$', 'S$')  # 或者直接删除这一行
+
+
+        # Unicode标准化（NFKD：兼容分解）
+        text = unicodedata.normalize('NFKD', text)
+        
+        # 可选：移除不可见控制字符
+        text = ''.join(c for c in text if c.isprintable() or c.isspace())
+        
+        return text
+    
+    def _normalize_documents(self, documents):
+        """
+        标准化文档列表中的所有文本
+        
+        Args:
+            documents: LangChain Document对象列表
+            
+        Returns:
+            标准化后的Document对象列表
+        """
+        from langchain.schema import Document
+        
+        normalized_docs = []
+        for doc in documents:
+            normalized_text = self._normalize_text(doc.page_content)
+            normalized_doc = Document(
+                page_content=normalized_text,
+                metadata=doc.metadata
+            )
+            normalized_docs.append(normalized_doc)
+        
+        return normalized_docs
+       
     def load_pdf(self, pdf_path: str, use_cache: bool = True) -> Dict:
         """
         加载并解析PDF文件
@@ -175,8 +259,12 @@ class AdvancedContractRAG:
             except Exception as e:
                 print(f"⚠️ PyMuPDF failed: {e}")
         
+        
         if documents is None or len(documents) == 0:
             return {"success": False, "error": "Failed to extract text from PDF"}
+        
+
+        documents = self._normalize_documents(documents)
         
         # 提取元数据
         total_pages = len(documents)
@@ -288,7 +376,8 @@ class AdvancedContractRAG:
         # 最近一份
             last_key = next(reversed(self.documents.keys()))
             docs_to_summarize = self.documents[last_key]
-
+        
+        docs_to_summarize = self._normalize_documents(docs_to_summarize)
         # 根据类型选择提示模板
         if summary_type == "brief":
             prompt_template = """
