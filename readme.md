@@ -1,361 +1,130 @@
-# 📄 Contract Assistant
+# Smart Contract Assistant (RAG)
 
-**AI-Powered Contract Analysis System**
-
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.37+-red.svg)](https://streamlit.io)
-[![LangChain](https://img.shields.io/badge/LangChain-0.2.16-green.svg)](https://langchain.com)
-
-
-> Making contract analysis simple, fast, and accurate with Large Language Models
-
-[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [API](#api-reference) • [FAQ](#faq)
+An AI-powered rental contract assistant built on Retrieval-Augmented Generation (RAG). It supports multi-user login, PDF contract upload, semantic search, Q&A, summaries, and key information extraction with local caching and SQLite persistence.
 
 ---
 
-## Overview
+## 🚀 Quick Start (Usage First)
 
-**Contract Assistant** is an intelligent system for contract analysis powered by LLM and RAG (Retrieval-Augmented Generation) technology. It helps you understand, analyze, and manage contract documents through:
-
-- 💬 **Intelligent Q&A** - Ask questions in natural language
-- 📝 **Auto Summarization** - Generate comprehensive or brief summaries
-- 🔍 **Information Extraction** - Extract key contract details
-- 📊 **Contract Comparison** - Compare multiple contracts (coming soon)
-
-### Why Choose Us?
-
-✅ **Accurate** - RAG-based answers with source citations  
-✅ **Fast** - Sub-second responses with smart caching  
-✅ **Simple** - Beautiful UI, zero learning curve  
-✅ **Secure** - User data isolation, local storage  
-✅ **Complete** - Full-featured contract management
-
----
-
-## Features
-
-### 📤 Smart Upload
-- PDF document support
-- Automatic text extraction
-- Intelligent chunking
-- Vector storage
-
-### 💬 Intelligent Q&A
-- Natural language queries
-- Context-aware conversations
-- Source citations (500 chars)
-- Real-time responses
-
-### 📝 Summarization
-- **Comprehensive**: Detailed analysis
-- **Brief**: Quick overview  
-- **Key Points**: Structured bullets
-
-### 🔍 Extraction
-Automatically extract:
-- Parties involved
-- Financial terms
-- Important dates
-- Addresses
-- Key clauses
-
-### 👤 User System
-- Secure authentication
-- Data isolation
-- History tracking
-- File management
-
----
-
-## Tech Stack
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Python | 3.8+ | Core language |
-| Streamlit | 1.37+ | Web UI |
-| LangChain | 0.2.16 | LLM framework |
-| OpenAI | 1.30+ | LLM API |
-| FAISS | 1.8+ | Vector DB |
-
----
-
-## Quick Start
-
-### Prerequisites
-
+### 1) Environment
 - Python 3.8+
-- OpenAI API Key
-- 4GB+ RAM
+- Optional: OpenAI API key (for GPT models)
 
-### Installation
+### 2) Setup
+
+PowerShell (Windows):
+
+```powershell
+git clone https://github.com/Yechulin1/DSS5105/tree/yechulin
+cd DSS5105
+python -m venv venv
+./venv/Scripts/Activate.ps1
+pip install -r requirements.txt
+Copy-Item env_example.txt .env
+# edit .env and set at least:
+# OPENAI_API_KEY=your_api_key
+# OPENAI_MODEL=gpt-3.5-turbo
+```
+
+macOS/Linux:
 
 ```bash
-# Clone repository
-git clone https://github.com/your-username/contract-assistant.git
-cd contract-assistant
-
-# Create virtual environment
+git clone <your-repo-url>
+cd 5105_v10_zyh
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate
 pip install -r requirements.txt
+cp env_example.txt .env
+# edit .env and set at least OPENAI_API_KEY, OPENAI_MODEL
+```
 
-# Configure
-echo "OPENAI_API_KEY=your_key_here" > .env
+### 3) Run
 
-# Run
+```powershell
 streamlit run app.py
 ```
 
-Visit: `http://localhost:8501`
+Open http://localhost:8501
 
-### First Steps
-
-1. **Register** an account
-2. **Upload** a PDF contract  
-3. **Ask** questions:
-   - "What is the monthly rent?"
-   - "What is the lease term?"
-   - "Who are the parties?"
+### 4) How to Use (in app)
+1. Register → Login
+2. Upload a PDF contract (Upload tab)
+3. Ask questions about the contract (Q&A tab)
+4. Generate summaries (Summary tab): brief/comprehensive/key points
+5. Extract key fields like rent, deposit, dates (Extract tab)
 
 ---
 
-## Architecture
-
-```
-┌─────────────────────┐
-│   Frontend (UI)     │
-│   - Streamlit       │
-└──────────┬──────────┘
-           │
-┌──────────┴──────────┐
-│  Backend (Logic)    │
-│  - Database         │
-│  - File Processing  │
-│  - Cache Management │
-└──────────┬──────────┘
-           │
-┌──────────┴──────────┐
-│  RAG System         │
-│  - Document Loading │
-│  - Vector Search    │
-│  - LLM Q&A          │
-└──────────┬──────────┘
-           │
-┌──────────┴──────────┐
-│  Storage            │
-│  - SQLite           │
-│  - FAISS            │
-│  - File System      │
-└─────────────────────┘
-```
-
-### File Structure
-
-```
-contract-assistant/
-├── app.py                    # Main entry
-├── frontend.py               # UI layer
-├── backend.py                # Business logic
-├── langchain_rag_system.py  # RAG core
-├── requirements.txt          # Dependencies
-├── .env                      # Configuration
-└── user_data/               # User files
-```
+## ✨ Features
+- Multi-user system: register/login, per-user data isolation
+- PDF ingestion: parsing, chunking, embeddings, FAISS vector store
+- Contract Q&A with source citations and short-term conversation memory
+- Summaries: brief, comprehensive, key points (cached by file+type)
+- Key information extraction (rent, deposit, duration, fees, policies)
+- Caching across layers: in-memory, FAISS on disk, SQLite tables
+- Secure password hashing (PBKDF2-HMAC-SHA256 with salt)
 
 ---
 
-## Documentation
+## 🏗️ Architecture
 
-### Upload Documents
+Technology stack:
+- UI: Streamlit (`app.py`)
+- Business logic: `backend.py` (users, files, cache)
+- AI/RAG: `langchain_rag_system.py` (PDF load, embeddings, retrieval, LLM)
+- Data: SQLite (structured data), FAISS (vector search), filesystem (documents)
 
-1. Navigate to **Upload** tab
-2. Select PDF file
-3. Click **Start Processing**
-4. Wait for vectorization
+Project layout (key parts):
 
-### Ask Questions
-
-1. Go to **Q&A** tab
-2. Type your question
-3. Review answer and sources
-
-**Tips**:
-- Be specific
-- One question at a time
-- Verify with sources
-
-### Generate Summaries
-
-1. Open **Summary** tab
-2. Choose type (Comprehensive/Brief/Key Points)
-3. Click **Generate**
-
-### Extract Information
-
-1. Visit **Extract** tab
-2. Click **Start Extraction**
-3. View structured JSON output
-
----
-
-## Configuration
-
-### Environment Variables
-
-`.env` file:
-```bash
-OPENAI_API_KEY=sk-xxxxx
-OPENAI_BASE_URL=https://api.openai.com/v1  # Optional
-OPENAI_MODEL=gpt-4                         # Optional
+```
+5105_v10_zyh/
+├─ app.py                    # Streamlit UI entry
+├─ backend.py                # DB/users/files/cache orchestration
+├─ langchain_rag_system.py   # AdvancedContractRAG (RAG engine)
+├─ requirements.txt
+├─ env_example.txt  → .env   # environment settings
+├─ user_data/
+│  └─ {user_id}/
+│     ├─ contracts/
+│     ├─ vector_stores/
+│     └─ cache/
+└─ contract_system.db        # auto-created SQLite database
 ```
 
-### Model Settings
-
-In `langchain_rag_system.py`:
-
-```python
-# Change LLM model
-self.llm = ChatOpenAI(model="gpt-4", temperature=0)
-
-# Change embedding model  
-self.embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-```
-
-### Performance Tuning
-
-```python
-chunk_size=1000      # 500-2000 recommended
-chunk_overlap=200    # 100-400 recommended  
-k=4                  # 2-8 documents retrieved
-```
+Data model (tables): `users`, `processed_files`, `cached_summaries`, `qa_history`, `extracted_info_cache`.
 
 ---
 
-## API Reference
-
-### RAG System
-
-#### ask_question()
-
-```python
-response = rag.ask_question("What is the rent?")
-# Returns: {"answer": str, "sources": List[Dict], "tokens_used": int}
-```
-
-#### summarize_contract()
-
-```python
-summary = rag.summarize_contract("comprehensive")
-# Returns: str
-```
-
-#### extract_contract_info()
-
-```python
-info = rag.extract_contract_info()
-# Returns: Dict with extracted fields
-```
-
-### Backend
-
-```python
-# User management
-user_manager.register_user(username, email, password)
-user_manager.login(username, password)
-
-# File processing
-file_processor.process_and_save_file(user_id, file, rag_system)
-file_processor.load_processed_file(user_id, file_id, rag_system)
-
-# Cache management
-cache_manager.save_qa_history(user_id, file_id, question, answer, sources)
-cache_manager.get_cached_summary(file_id, summary_type)
-```
+## 🔑 Key Files
+- `app.py`: Streamlit app (tabs: Upload, Q&A, Summary, Extract, History)
+- `backend.py`:
+   - DatabaseManager: create/migrate tables
+   - UserManager: register/login, role (tenant/landlord)
+   - FileProcessor: upload → parse → embed → persist → load
+   - CacheManager: summaries/extractions/Q&A history
+- `langchain_rag_system.py`:
+   - `AdvancedContractRAG`: `load_pdf`, `ask_question`, `summarize_contract`, `extract_key_information`, `clear_all_documents`, vector store save/load
 
 ---
 
-## FAQ
-
-**Q: Installation fails?**  
-A: Upgrade pip: `pip install --upgrade pip`
-
-**Q: FAISS error?**  
-A: Install CPU version: `pip install faiss-cpu`
-
-**Q: API error?**  
-A: Check API key, balance, and network
-
-**Q: Slow responses?**  
-A: Use gpt-3.5-turbo or reduce k parameter
-
-**Q: Inaccurate answers?**  
-A: Increase chunk_size or use gpt-4
+## ⚙️ Notes & Tips
+- First run may take longer to embed; subsequent loads use FAISS/vector cache.
+- Each new upload clears prior in-memory docs to avoid context mixing.
+- If OpenAI is not configured, ensure `OPENAI_API_KEY` and `OPENAI_MODEL` exist in `.env`.
+- User data is isolated under `user_data/{user_id}`; do not commit this folder.
 
 ---
 
-## Roadmap
-
-### v1.0 (Current) ✅
-- [ ] RAG Q&A system
-- [ ] User authentication
-- [ ] Summarization
-- [ ] Information extraction
-- [ ] Smart caching
-
-### v1.1 (Planned)
-- [ ] Contract comparison
-- [ ] Advanced search
-- [ ] Export (PDF/Word/Excel)
-
-### v1.2 (Future)
-- [ ] Multi-language support
-- [ ] RESTful API
-- [ ] Mobile app
+## 🔮 Roadmap (Short & Sweet)
+- Multi-document compare and cross-document search
+- OCR for scanned PDFs and better table extraction
+- API endpoints (upload/ask/summary/extract)
+- Role-tailored prompts and question templates (tenant/landlord)
+- Export reports (PDF/Word) and shareable links
 
 ---
 
-## Contributing
+## 📝 License
 
-We welcome contributions!
+MIT License
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push and open a Pull Request
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
----
-
-## License
-
-This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-## Acknowledgments
-
-- [LangChain](https://github.com/langchain-ai/langchain) - LLM framework
-- [Streamlit](https://streamlit.io/) - Web framework
-- [OpenAI](https://openai.com/) - LLM provider
-- [FAISS](https://github.com/facebookresearch/faiss) - Vector search
-
----
-
-## Contact
-
-- **GitHub**: [Repository](https://github.com/your-username/contract-assistant)
-- **Issues**: [Issue Tracker](https://github.com/your-username/contract-assistant/issues)
-- **Email**: 
-
----
-
-<div align="center">
-
-**If this project helps you, please give it a ⭐!**
-
-Made with ❤️ 
-
-</div>
