@@ -11,10 +11,11 @@
 """
 
 import sqlite3
-import bcrypt
 import hashlib
 import json
 import pickle
+import secrets
+import base64
 from pathlib import Path
 from datetime import datetime, timedelta
 import pandas as pd
@@ -26,6 +27,29 @@ load_dotenv()
 
 # LangChain相关导入
 from langchain_rag_system import AdvancedContractRAG
+
+# ==================================================
+# 密码哈希辅助函数 (使用 Python 内置库，无需外部 DLL)
+# ==================================================
+
+def hash_password(password: str) -> str:
+    """使用 PBKDF2-HMAC-SHA256 哈希密码"""
+    salt = secrets.token_bytes(32)
+    pwd_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+    # 存储格式: base64(salt) + "$" + base64(hash)
+    storage = base64.b64encode(salt).decode('ascii') + "$" + base64.b64encode(pwd_hash).decode('ascii')
+    return storage
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    """验证密码"""
+    try:
+        salt_b64, hash_b64 = stored_hash.split('$')
+        salt = base64.b64decode(salt_b64)
+        stored_pwd_hash = base64.b64decode(hash_b64)
+        pwd_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+        return pwd_hash == stored_pwd_hash
+    except:
+        return False
 
 # ==================================================
 # 后端业务逻辑类
@@ -50,6 +74,7 @@ class DatabaseManager:
                 username TEXT UNIQUE NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
+                user_role TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_login TIMESTAMP,
                 is_active BOOLEAN DEFAULT 1,
@@ -57,6 +82,15 @@ class DatabaseManager:
                 tier TEXT DEFAULT 'free'
             )
         """)
+        
+        # 数据库迁移：如果 users 表已存在但没有 user_role 列，添加该列
+        try:
+            cursor.execute("SELECT user_role FROM users LIMIT 1")
+        except sqlite3.OperationalError:
+            # user_role 列不存在，添加它
+            cursor.execute("ALTER TABLE users ADD COLUMN user_role TEXT DEFAULT NULL")
+            conn.commit()
+            print("✅ 数据库迁移: 已添加 user_role 列到 users 表")
         
         # 处理过的文件表
         cursor.execute("""
@@ -148,7 +182,7 @@ class UserManager:
             
             # 创建用户
             user_id = hashlib.md5(f"{username}_{datetime.now()}".encode()).hexdigest()[:16]
-            password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            password_hash = hash_password(password)
             
             cursor.execute("""
                 INSERT INTO users (user_id, username, email, password_hash)
@@ -188,7 +222,7 @@ class UserManager:
             
             user_id, password_hash, email = user
             
-            if bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
+            if verify_password(password, password_hash):
                 # 更新登录时间和使用次数
                 cursor.execute("""
                     UPDATE users 
@@ -206,6 +240,45 @@ class UserManager:
                 }
             
             return {"success": False}
+            
+        finally:
+            conn.close()
+    
+    def set_user_role(self, user_id: str, role: str) -> Dict:
+        """设置用户角色（tenant: 租客, landlord: 房东）"""
+        if role not in ['tenant', 'landlord']:
+            return {"success": False, "message": "无效的角色类型"}
+        
+        conn = sqlite3.connect(self.db.db_path)
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("""
+                UPDATE users 
+                SET user_role = ?
+                WHERE user_id = ?
+            """, (role, user_id))
+            conn.commit()
+            return {"success": True, "role": role}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
+        finally:
+            conn.close()
+    
+    def get_user_role(self, user_id: str) -> Optional[str]:
+        """获取用户角色"""
+        conn = sqlite3.connect(self.db.db_path)
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("""
+                SELECT user_role
+                FROM users 
+                WHERE user_id = ?
+            """, (user_id,))
+            
+            result = cursor.fetchone()
+            return result[0] if result else None
             
         finally:
             conn.close()
