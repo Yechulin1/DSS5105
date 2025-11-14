@@ -115,8 +115,8 @@ class ContractAssistantApp:
         """Initialize user's RAG system"""
         if st.session_state.rag_system is None:
             st.session_state.rag_system = AdvancedContractRAG(
-                api_key = st.secrets["OPENAI_API_KEY"],
-                model=st.secrets.get("OPENAI_MODEL", "gpt-3.5-turbo")
+                api_key = os.getenv("OPENAI_API_KEY"),
+                model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
             )
             # Set user-specific cache directory
             user_cache_dir = Path(f"user_data/{st.session_state.user_id}/cache")
