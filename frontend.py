@@ -610,14 +610,9 @@ class ContractAssistantApp:
     def init_user_rag_system(self):
         """Initialize user's RAG system"""
         if st.session_state.rag_system is None:
-            st.session_state.rag_system = AdvancedContractRAG(
-<<<<<<< HEAD
-                api_key = os.getenv("OPENAI_API_KEY"),
-                model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-=======
+            st.session_state.rag_system = AdvancedContractRAG(                
                 api_key = st.secrets["OPENAI_API_KEY"],
                 model=st.secrets.get("OPENAI_MODEL", "gpt-4o")
->>>>>>> 970502db4d58656eb3f0a65e1f40ef1509cf11fb
             )
             # Set user-specific cache directory
             user_cache_dir = Path(f"user_data/{st.session_state.user_id}/cache")
@@ -658,6 +653,7 @@ class ContractAssistantApp:
                 for file in recent_files:
                     col1, col2 = st.columns([3, 1])
                     with col1:
+
                         st.write(f"📄 {file['filename'][:20]}...")
                     with col2:
                         if st.button("Load", key=f"load_{file['file_id']}"):
