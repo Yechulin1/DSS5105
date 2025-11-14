@@ -763,7 +763,7 @@ class AdvancedContractRAG:
 
             for k, v in extracted_info.items():
                 if v == "Not mentioned":
-                    qa = self.ask_question(fallback_queries[k], use_compression=False)
+                    qa = self.ask_question(fallback_queries[k], use_compression=True)
                     ans = qa.get("answer", "").strip()
                     if ans and ans.lower() not in {"not mentioned", "unknown", "not specified"}:
                         extracted_info[k] = self._simplify_answer(ans, k)
@@ -829,7 +829,7 @@ class AdvancedContractRAG:
             # 顺序回填（避免API过多并发）
             for k, v in info.items():
                 if v == "Not mentioned":
-                    qa = self.ask_question(fallback_queries[k], use_compression=False)
+                    qa = self.ask_question(fallback_queries[k], use_compression=True)
                     ans = qa.get("answer", "").strip()
                     if ans and ans.lower() not in {"not mentioned", "unknown", "not specified"}:
                         info[k] = self._simplify_answer(ans, k)
