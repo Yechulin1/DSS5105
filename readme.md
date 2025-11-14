@@ -29,8 +29,8 @@ Copy-Item env_example.txt .env
 macOS/Linux:
 
 ```bash
-git clone <your-repo-url>
-cd 5105_v10_zyh
+git clone https://github.com/Yechulin1/DSS5105/tree/yechulin
+cd DSS5105
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
