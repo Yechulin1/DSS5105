@@ -1,0 +1,518 @@
+{
+  "_metadata": {
+    "_comment": "RentalPeace Test Data - Complete with Quick Questions",
+    "_version": "4.0",
+    "_author": "cipher-h",
+    "_created": "2025-11-13",
+    "_last_updated": "2025-11-13 13:25:00 UTC",
+    "_description": "Comprehensive test cases including quick question buttons for tenant and landlord roles"
+  },
+
+  "evaluation_mode": "fast",
+
+  "_dimension_coverage": {
+    "1_retrieval_quality": "10 tests - validates document retrieval",
+    "2_answer_quality": "15 QA pairs - evaluates answer correctness",
+    "3_quick_questions_quality": "16 tests (8 tenant + 8 landlord) - tests quick answer buttons",
+    "4_source_citation": "9 tests - verifies source accuracy",
+    "5_summary_quality": "3 tests - assesses summary completeness",
+    "6_extraction_accuracy": "10 fields - tests structured data extraction",
+    "7_efficiency": "8 questions - measures response time"
+  },
+
+  "retrieval_tests": [
+    {
+      "test_id": "retr_001",
+      "question": "What is the monthly rent amount?",
+      "expected_keywords": ["rental", "monthly", "7500"],
+      "expected_page": 1,
+      "difficulty": "easy",
+      "type": "factoid"
+    },
+    {
+      "test_id": "retr_002",
+      "question": "What is the security deposit amount?",
+      "expected_keywords": ["security", "deposit", "15,000"],
+      "expected_page": 2,
+      "difficulty": "easy",
+      "type": "factoid"
+    },
+    {
+      "test_id": "retr_003",
+      "question": "What is the lease duration or term?",
+      "expected_keywords": ["24", "months", "commencing"],
+      "expected_page": 1,
+      "difficulty": "easy",
+      "type": "factoid"
+    },
+    {
+      "test_id": "retr_004",
+      "question": "When is the rent due each month?",
+      "expected_keywords": ["22nd", "month", "advance"],
+      "expected_page": 1,
+      "difficulty": "easy",
+      "type": "factoid"
+    },
+    {
+      "test_id": "retr_005",
+      "question": "What are the landlord's maintenance responsibilities?",
+      "expected_keywords": ["landlord", "repair", "structural", "maintenance"],
+      "expected_page": 3,
+      "difficulty": "medium",
+      "type": "list"
+    },
+    {
+      "test_id": "retr_006",
+      "question": "What are the tenant's maintenance responsibilities?",
+      "expected_keywords": ["tenant", "borne by the Tenant", "minor", "repair", "200"],
+      "expected_page": 3,
+      "difficulty": "medium",
+      "type": "list"
+    },
+    {
+      "test_id": "retr_007",
+      "question": "What is the pet policy in this rental agreement?",
+      "expected_keywords": ["pet", "animal", "permission", "written"],
+      "expected_page": 4,
+      "difficulty": "medium",
+      "type": "policy"
+    },
+    {
+      "test_id": "retr_008",
+      "question": "What happens if rent is paid late?",
+      "expected_keywords": ["late", "interest", "10%", "unpaid"],
+      "expected_page": 7,
+      "difficulty": "medium",
+      "type": "conditional"
+    },
+    {
+      "test_id": "retr_009",
+      "question": "Who is responsible for utility payments?",
+      "expected_keywords": ["pay", "water", "electricity", "gas", "charges"],
+      "expected_page": 2,
+      "difficulty": "medium",
+      "type": "responsibility"
+    },
+    {
+      "test_id": "retr_010",
+      "question": "Are there any restrictions on subleasing the property?",
+      "expected_keywords": ["sublet", "assign", "consent", "written"],
+      "expected_page": 4,
+      "difficulty": "hard",
+      "type": "policy"
+    }
+  ],
+
+  "qa_pairs": [
+    {
+      "test_id": "qa_001",
+      "question": "What is the monthly rent?",
+      "reference_answer": "The monthly rent is S$7500.",
+      "category": "financial",
+      "difficulty": "easy",
+      "importance": "critical"
+    },
+    {
+      "test_id": "qa_002",
+      "question": "How much is the security deposit?",
+      "reference_answer": "The security deposit is S$15,000, equivalent to two months' rent, payable upon signing the tenancy agreement.",
+      "category": "financial",
+      "difficulty": "easy",
+      "importance": "critical"
+    },
+    {
+      "test_id": "qa_003",
+      "question": "When is the rent due?",
+      "reference_answer": "Rent is payable monthly in advance on or before the 22nd day of each calendar month.",
+      "category": "financial",
+      "difficulty": "easy",
+      "importance": "critical"
+    },
+    {
+      "test_id": "qa_004",
+      "question": "What happens if I pay rent late?",
+      "reference_answer": "If rent remains unpaid for 7 days after the due date, the landlord may charge 10% per annum interest on the overdue amount and may terminate the tenancy.",
+      "category": "financial",
+      "difficulty": "medium",
+      "importance": "high"
+    },
+    {
+      "test_id": "qa_005",
+      "question": "How long is the lease term?",
+      "reference_answer": "The lease term is 24 months commencing from 22 February 2024.",
+      "category": "duration",
+      "difficulty": "easy",
+      "importance": "critical"
+    },
+    {
+      "test_id": "qa_006",
+      "question": "Can I have pets?",
+      "reference_answer": "Pets are not allowed without the landlord's prior written permission.",
+      "category": "rules",
+      "difficulty": "medium",
+      "importance": "high"
+    },
+    {
+      "test_id": "qa_007",
+      "question": "Who is responsible for maintenance and repairs?",
+      "reference_answer": "The tenant is responsible for interior upkeep and minor repairs not exceeding S$200 per item. The landlord is responsible for structural repairs, fair wear and tear, and air-conditioning maintenance every three months.",
+      "category": "maintenance",
+      "difficulty": "medium",
+      "importance": "high"
+    },
+    {
+      "test_id": "qa_008",
+      "question": "How can I terminate the lease early?",
+      "reference_answer": "After 12 months, early termination is allowed under the diplomatic clause for specific reasons (deportation, work/residence denial, or relocation). This requires 2 months' notice or 2 months' rent payment, with documentary evidence.",
+      "category": "termination",
+      "difficulty": "hard",
+      "importance": "high"
+    },
+    {
+      "test_id": "qa_009",
+      "question": "Who pays for utilities?",
+      "reference_answer": "The tenant is responsible for all charges for water, electricity, gas, telephone, and sewerage services.",
+      "category": "utilities",
+      "difficulty": "medium",
+      "importance": "medium"
+    },
+    {
+      "test_id": "qa_010",
+      "question": "Can I sublease the property?",
+      "reference_answer": "The tenant shall not assign, sublet, or part with possession of the premises without the landlord's prior written consent.",
+      "category": "rules",
+      "difficulty": "hard",
+      "importance": "medium"
+    },
+    {
+      "test_id": "qa_011",
+      "question": "What happens to the security deposit when I move out?",
+      "reference_answer": "The landlord shall refund the balance of the security deposit within 14 days after expiry or termination of the tenancy, after deducting any amounts due for breaches or damages.",
+      "category": "financial",
+      "difficulty": "medium",
+      "importance": "high"
+    },
+    {
+      "test_id": "qa_012",
+      "question": "Can I make modifications to the property?",
+      "reference_answer": "The tenant shall not make any alterations or additions without the landlord's prior written consent and must reinstate any changes at the end of the tenancy.",
+      "category": "rules",
+      "difficulty": "medium",
+      "importance": "medium"
+    },
+    {
+      "test_id": "qa_013",
+      "question": "Is renters insurance required?",
+      "reference_answer": "Yes, tenants are required to have insurance for their personal belongings against theft, loss, and fire damage.",
+      "category": "requirement",
+      "difficulty": "medium",
+      "importance": "high"
+    },
+    {
+      "test_id": "qa_014",
+      "question": "Can the landlord enter my apartment?",
+      "reference_answer": "The landlord or authorized persons may enter the premises at reasonable times for inspection, repair, or to show the property to prospective tenants or purchasers, with prior notice.",
+      "category": "rights",
+      "difficulty": "medium",
+      "importance": "high"
+    },
+    {
+      "test_id": "qa_015",
+      "question": "What happens if I break the lease?",
+      "reference_answer": "If the tenant fails to comply with any terms, the landlord may terminate the tenancy and forfeit the security deposit. Early termination is only permitted under the diplomatic clause.",
+      "category": "termination",
+      "difficulty": "hard",
+      "importance": "high"
+    }
+  ],
+
+  "quick_questions": {
+    "_comment": "快捷问题按钮测试 - 分租客和房东两套",
+    "tenant": [
+      {
+        "button_label": "Monthly Rent",
+        "icon": "💰",
+        "question": "What is the monthly rent amount?",
+        "reference_answer": "The monthly rent is S$7,500.",
+        "expected_keywords": ["rent", "7500", "monthly"],
+        "importance": "critical",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Lease Duration",
+        "icon": "📅",
+        "question": "What is the lease duration?",
+        "reference_answer": "The lease term is 24 months commencing from 22 February 2024.",
+        "expected_keywords": ["24", "months", "2024"],
+        "importance": "critical",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Security Deposit",
+        "icon": "🏦",
+        "question": "What is the security deposit amount?",
+        "reference_answer": "The security deposit is S$15,000, equivalent to two months' rent.",
+        "expected_keywords": ["deposit", "15,000"],
+        "importance": "critical",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Payment Due",
+        "icon": "📆",
+        "question": "When is the rent due each month?",
+        "reference_answer": "Rent is payable monthly in advance on or before the 22nd day of each month.",
+        "expected_keywords": ["22nd", "month", "advance"],
+        "importance": "high",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Maintenance",
+        "icon": "🔧",
+        "question": "What are my maintenance responsibilities?",
+        "reference_answer": "The tenant is responsible for interior upkeep and minor repairs not exceeding S$200 per item.",
+        "expected_keywords": ["tenant", "interior", "minor", "200"],
+        "importance": "high",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Pet Policy",
+        "icon": "🐕",
+        "question": "What is the pet policy?",
+        "reference_answer": "Pets are not allowed without the landlord's prior written permission.",
+        "expected_keywords": ["pet", "permission", "written"],
+        "importance": "medium",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Termination",
+        "icon": "🚪",
+        "question": "What are the termination conditions?",
+        "reference_answer": "After 12 months, early termination is allowed under the diplomatic clause with 2 months' notice.",
+        "expected_keywords": ["termination", "diplomatic", "12", "months", "notice"],
+        "importance": "high",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Utilities",
+        "icon": "💡",
+        "question": "Who pays for utilities?",
+        "reference_answer": "The tenant is responsible for all charges for water, electricity, gas, telephone, and sewerage services.",
+        "expected_keywords": ["tenant", "gas", "water", "electricity"],
+        "importance": "medium",
+        "expected_response_time": 4.0
+      }
+    ],
+    "landlord": [
+      {
+        "button_label": "Payment Terms",
+        "icon": "💵",
+        "question": "What are the tenant's payment obligations?",
+        "reference_answer": "The tenant must pay: monthly rent of S$7,500 by the 22nd of each month; a S$15,000 security deposit; all utility charges (electricity, water, gas, telephone, sewerage); the first S$200 of repair/replacement costs per item; stamp duty for the agreement; increased insurance premiums if caused by tenant breach; pro-rated agency commission for early termination; and 10% interest on late rent payments after 7 days.",
+        "expected_keywords": ["rent", "7500", "15,000", "deposit", "stamp duty", "gas", "water", "electricity", "200"],
+        "importance": "critical",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Late Penalties",
+        "icon": "⚠️",
+        "question": "What are the late payment penalties?",
+        "reference_answer": "If rent remains unpaid for 7 days, the landlord may charge 10% per annum interest and may terminate the tenancy.",
+        "expected_keywords": ["late", "7", "days", "10%", "interest"],
+        "importance": "critical",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Maintenance",
+        "icon": "🏗️",
+        "question": "What are my maintenance obligations as landlord?",
+        "reference_answer": "As landlord, you are responsible for: repairing defects identified during the 30-day defect-free period; covering repair costs exceeding S$200 per item; maintaining structural elements (roof, walls, floors, wiring); providing quarterly aircon servicing and covering aircon repair/replacement costs (except for tenant-caused damage); replacing items due to fair wear and tear; maintaining fire insurance for the property; and paying all property taxes.",
+        "expected_keywords": ["landlord", "structural", "repairs", "aircon", "fair wear", "property tax", "fire insurance", "defect-free period"],
+        "importance": "high",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Access Rights",
+        "icon": "🔑",
+        "question": "What are the property access rights?",
+        "reference_answer": "The landlord has access rights for three purposes: 1) Repairs and maintenance - with prior appointment at reasonable times; 2) Showing to new tenants - during the last 2 months of tenancy with prior appointment; 3) Showing to potential buyers - at any time with prior appointment when the property is for sale. All access requires mutually agreed prior appointments at reasonable times.",
+        "expected_keywords": ["repairs", "enter", "potential purchaser", "notice", "new tenant", "reasonable times"],
+        "importance": "high",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Renewal Terms",
+        "icon": "🔄",
+        "question": "What are the lease renewal terms?",
+        "reference_answer": "The tenant may renew the lease for 1 additional year by submitting a written request at least 2 months before expiry, provided there are no lease violations during the current term. The renewed lease will be at prevailing market rent with the same terms, except the renewal option and diplomatic clause are removed unless otherwise agreed. The landlord pays the agency renewal commission.",
+        "expected_keywords": ["2", "months", "renewal", "1", "year", "no breach"],
+        "importance": "medium",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Restrictions",
+        "icon": "⛔",
+        "question": "What are the tenant's restrictions?",
+        "reference_answer": "Tenants are restricted from: making alterations without written consent; subletting without approval; causing nuisances; keeping dangerous materials; using premises for illegal purposes; affecting landlord's insurance; keeping pets without permission; violating laws/regulations; damaging walls/ceilings without consent (except picture hanging); and must comply with foreign resident verification if applicable. Premises must be returned in good condition at lease end.",
+        "expected_keywords": ["pet", "sublet", "alteration", "consent", "nuisance", "dangerous materials", "illegal", "hack holes", "yielding"],
+        "importance": "high",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Eviction",
+        "icon": "📋",
+        "question": "What are the eviction conditions?",
+        "reference_answer": "The landlord may evict the tenant for: unpaid rent after 7 days; tenant bankruptcy or financial insolvency; illegal activities on the premises; presence of prohibited immigrants; or if the tenant is a company that goes into liquidation. Upon any of these breaches, the landlord may re-enter the premises and terminate the tenancy.",
+        "expected_keywords": ["terminate", "premises", "unpaid", "breach", "7 days", "bankrupt", "illegal", "prohibited immigrant", "liquidation"],
+        "importance": "critical",
+        "expected_response_time": 4.0
+      },
+      {
+        "button_label": "Liability",
+        "icon": "🛡️",
+        "question": "What are my liability protections?",
+        "reference_answer": "As tenant, your liability protections include: no responsibility for service interruptions beyond landlord's control; limited repair liability to S$200 per item; no responsibility for structural systems, aircon, or water heaters unless damaged by your negligence; landlord covers aircon servicing and fair wear and tear repairs; and you can insure personal belongings separately. The landlord's fire insurance does not cover your personal property.",
+        "expected_keywords": ["interruption", "insurance", "fire", "damage", "beyond the control", "repairs", "acts of God"],
+        "importance": "high",
+        "expected_response_time": 4.0
+      }
+    ]
+  },
+
+  "source_citation_tests": [
+    {
+      "test_id": "cite_001",
+      "question": "What is the monthly rent?",
+      "expected_source_pages": [1],
+      "critical_pages": [1]
+    },
+    {
+      "test_id": "cite_002",
+      "question": "What are the landlord's and tenant's maintenance responsibilities?",
+      "expected_source_pages": [3],
+      "critical_pages": [3]
+    },
+    {
+      "test_id": "cite_003",
+      "question": "What is the pet policy?",
+      "expected_source_pages": [4],
+      "critical_pages": [4]
+    },
+    {
+      "test_id": "cite_004",
+      "question": "When is rent due and what is the late fee?",
+      "expected_source_pages": [1, 7],
+      "critical_pages": [1, 7]
+    },
+    {
+      "test_id": "cite_005",
+      "question": "Who pays for utilities?",
+      "expected_source_pages": [2],
+      "critical_pages": [2]
+    },
+    {
+      "test_id": "cite_006",
+      "question": "Can I sublease?",
+      "expected_source_pages": [4],
+      "critical_pages": [4]
+    },
+    {
+      "test_id": "cite_007",
+      "question": "What is the security deposit amount?",
+      "expected_source_pages": [2],
+      "critical_pages": [2]
+    },
+    {
+      "test_id": "cite_008",
+      "question": "What modifications can I make?",
+      "expected_source_pages": [3],
+      "critical_pages": [3]
+    },
+    {
+      "test_id": "cite_009",
+      "question": "Is renters insurance required?",
+      "expected_source_pages": [4],
+      "critical_pages": [4]
+    }
+  ],
+
+  "summary_tests": [
+    {
+      "test_id": "summ_001",
+      "summary_type": "brief",
+      "reference_summary": "This tenancy agreement is between landlord Peter Richardson Williams and tenant Michael Thompson Anderson for 88 Orchard Boulevard. The lease lasts 24 months from 22 February 2024 with monthly rent of S$7,500 and security deposit of S$15,000. Rent is due on the 22nd of each month. The tenant pays utilities and minor repairs up to S$200, while the landlord covers major structural repairs.",
+      "required_keywords": ["24", "months", "7,500", "15,000", "utility", "maintenance", "22nd"],
+      "min_length": 100,
+      "max_length": 500
+    },
+    {
+      "test_id": "summ_002",
+      "summary_type": "comprehensive",
+      "reference_summary": "This tenancy agreement between landlord Peter Richardson Williams and tenant Michael Thompson Anderson governs the lease of 88 Orchard Boulevard. The term is 24 months starting 22 February 2024 with monthly rent of S$7,500 and security deposit of S$15,000. Rent is payable on or before the 22nd. Late payments exceeding seven days accrue 10% annual interest. The tenant must pay all utilities and handle minor repairs up to S$200. The landlord is responsible for structural repairs and fair wear and tear. Pets require written approval. Subletting or alterations without consent are prohibited. The diplomatic clause allows termination after 12 months.",
+      "required_keywords": ["24", "months", "7,500", "15,000", "lease", "maintain", "22nd", "termination", "diplomatic", "utilities", "pets","alterations"],
+      "min_length": 300,
+      "max_length": 1200
+    },
+    {
+      "test_id": "summ_003",
+      "summary_type": "key points",
+      "reference_summary": "1. Lease: 24 months from 22 February 2024\n2. Rent: S$7,500/month, due before the 22nd\n3. Deposit: S$15,000 (2 months' rent)\n4. Utilities: Tenant responsible\n5. Minor repairs: Tenant pays up to S$200/item\n6. Major repairs: Landlord responsible\n7. Pets: Need written approval\n8. Subletting: Not allowed without consent\n9. Late payment: 10% annual interest after 7 days\n10. Early termination: Diplomatic clause (12 months + 2 months' notice)",
+      "required_keywords": ["24", "22nd", "months", "200", "7,500", "15,000", "utilities", "repairs", "termination", "diplomatic", "deposit"],
+      "min_length": 200,
+      "max_length": 700
+    }
+  ],
+
+  "extraction_ground_truth": {
+    "rent_amount": "s$7,500 per month",
+    "lease_duration": "22 Feb 2024 to 21 Feb 2026",
+    "security_deposit": "s$15,000",
+    "payment_due_date": "22nd of each month",
+    "late_fee": "10%",
+    "pet_policy": "pets not allowed without landlord's written permission",
+    "maintenance": "tenant responsible for interior upkeep and minor repairs ≤ s$200 per item; landlord responsible for structure, roof, and fair wear and tear",
+    "termination": "tenant may terminate under diplomatic clause after 12 months with two months' written notice or rent in lieu",
+    "utilities": "tenant pays for water, electricity, gas, telephone, and sewerage charges",
+    "parking": "I don't know"
+  },
+
+  "efficiency_questions": [
+    "What is the monthly rent?",
+    "How much is the security deposit?",
+    "What is the lease duration?",
+    "When is rent due?",
+    "What happens if rent is late?",
+    "Can I have pets?",
+    "Who handles maintenance?",
+    "Can I sublease the property?"
+  ],
+
+  "user_id": null,
+
+  "_test_execution_notes": {
+    "recommended_order": [
+      "1. retrieval_tests (retrieval quality)",
+      "2. qa_pairs (answer quality)",
+      "3. quick_questions (quick button quality) ⭐ NEW",
+      "4. source_citation_tests (citation quality)",
+      "5. summary_tests (summary quality)",
+      "6. extraction_ground_truth (extraction accuracy)",
+      "7. efficiency_questions (performance)"
+    ],
+    "estimated_time": {
+      "retrieval": "2-3 minutes",
+      "qa_pairs": "4-6 minutes",
+      "quick_questions": "3-5 minutes",
+      "source_citation": "2-3 minutes",
+      "summary": "2-4 minutes",
+      "extraction": "1-2 minutes",
+      "efficiency": "1-2 minutes",
+      "total": "15-25 minutes"
+    },
+    "api_cost_estimate": {
+      "total_tokens": "~40,000 tokens",
+      "gpt_3.5_turbo": "~$0.08",
+      "gpt_4": "~$1.20",
+      "note": "Actual cost depends on contract length and model used"
+    }
+  }
+}
